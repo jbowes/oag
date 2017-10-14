@@ -1,0 +1,10 @@
+language: go
+go: [ 1.9.x ]
+
+before_install:
+  - go get -u github.com/golang/dep/cmd/dep
+  - go get -u github.com/alecthomas/gometalinter
+install:
+  - dep ensure
+  - gometalinter --install
+script: make
