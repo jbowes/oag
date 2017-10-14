@@ -654,7 +654,7 @@ func unmarshalSchema(yms yaml.MapSlice) (Schema, error) {
 	}
 
 	switch y["type"] {
-	case "object":
+	case "object", nil:
 		var v ObjectSchema
 		err := yaml.Unmarshal(b, &v)
 		return &v, err

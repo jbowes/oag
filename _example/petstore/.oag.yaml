@@ -1,0 +1,3 @@
+document: petstore.yaml
+package:
+  path: github.com/jbowes/oag/_example/petstore
