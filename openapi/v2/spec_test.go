@@ -251,11 +251,11 @@ func TestResponsesUnmarshalYAML(t *testing.T) {
 	expected := Responses{
 		Default: &Response{Schema: &ReferenceSchema{Reference: "#/definitions/Error"}},
 		Codes: map[int]Response{
-			200: Response{
+			200: {
 				Description: "success",
 				Schema:      &StringSchema{},
 			},
-			204: Response{
+			204: {
 				Description: "success with no content",
 			},
 		},
