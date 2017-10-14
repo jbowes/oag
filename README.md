@@ -1,6 +1,7 @@
 # oag
 Idiomatic Go client package generation from OpenAPI documents
 
+[![Alpha quality](https://img.shields.io/badge/status-ALPHA-orange.svg)]()
 [![Build Status](https://travis-ci.org/jbowes/oag.svg?branch=master)](https://travis-ci.org/jbowes/oag)
 [![GitHub release](https://img.shields.io/github/release/jbowes/oag.svg)](https://github.com/jbowes/oag/releases/latest)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
