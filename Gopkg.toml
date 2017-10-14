@@ -1,0 +1,15 @@
+[[constraint]]
+  name = "github.com/dave/jennifer"
+  version = "0.14.0"
+
+[[constraint]]
+  name = "github.com/renstrom/dedent"
+  version = "1.0.0"
+
+[[constraint]]
+  branch = "v2"
+  name = "github.com/go-yaml/yaml"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/gedex/inflector"
