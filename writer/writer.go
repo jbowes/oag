@@ -66,7 +66,7 @@ func convertPkg(p *pkg.Package, boilerplate *config.Boilerplate) (*jen.File, err
 
 func convertClientMethod(f *jen.File, m *pkg.Method, decls []pkg.TypeDecl) {
 	f.Comment(formatComment(m.Comment))
-	fn := f.Func().Params(jen.Id(m.Reciever.ID).Op("*").Id(m.Reciever.Type)).Id(m.Name)
+	fn := f.Func().Params(jen.Id(m.Receiver.ID).Op("*").Id(m.Receiver.Type)).Id(m.Name)
 
 	var fmtArgs, queryArgs, headerArgs []pkg.Param
 	var optQueryArgs []pkg.Field
@@ -175,7 +175,7 @@ func convertClientMethod(f *jen.File, m *pkg.Method, decls []pkg.TypeDecl) {
 		query := setOptQueryArgs(g, errRet, len(queryArgs) > 0, optQueryArgs)
 
 		g.Add(reqDef)
-		g.List(jen.Id("req"), errResp.Clone()).Op(reqOp).Id(m.Reciever.ID).Dot("backend").Dot("NewRequest").Call(
+		g.List(jen.Id("req"), errResp.Clone()).Op(reqOp).Id(m.Receiver.ID).Dot("backend").Dot("NewRequest").Call(
 			jen.Qual("net/http", "Method"+m.HTTPMethod),
 			jen.Id("p"),
 			query,
@@ -191,7 +191,7 @@ func convertClientMethod(f *jen.File, m *pkg.Method, decls []pkg.TypeDecl) {
 		if respDef != nil {
 			g.Add(respDef)
 		}
-		g.List(jen.Id("_"), errResp.Clone()).Op("=").Id(m.Reciever.ID).Dot("backend").Dot("Do").Call(
+		g.List(jen.Id("_"), errResp.Clone()).Op("=").Id(m.Receiver.ID).Dot("backend").Dot("Do").Call(
 			jen.Id("ctx"),
 			jen.Id("req"),
 			doResp,

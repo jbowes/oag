@@ -207,7 +207,7 @@ func unmarshalParameter(y map[string]interface{}) (Parameter, error) {
 	}
 }
 
-// Parameter is the common interface for types that define operation paramters,
+// Parameter is the common interface for types that define operation parameters,
 // according to
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#parameterObject
 type Parameter interface {
@@ -755,7 +755,7 @@ func (a *AllOfSchema) UnmarshalYAML(um func(interface{}) error) error {
 	return nil
 }
 
-// ObjectSchema is a schema defintion for an object.
+// ObjectSchema is a schema definition for an object.
 type ObjectSchema struct {
 	SchemaFields  `yaml:",inline"`
 	Descriminator *string
@@ -767,7 +767,7 @@ type ObjectSchema struct {
 	MaxProperties *uint64
 }
 
-// NullSchema is a literal null schema defintion.
+// NullSchema is a literal null schema definition.
 type NullSchema struct {
 	SchemaFields `yaml:",inline"`
 }

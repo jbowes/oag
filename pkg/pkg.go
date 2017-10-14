@@ -146,7 +146,7 @@ type Client struct {
 
 // Method is a struct method on a Client for calling a remote API
 type Method struct {
-	Reciever struct {
+	Receiver struct {
 		ID   string
 		Type string
 	}

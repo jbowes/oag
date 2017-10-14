@@ -62,12 +62,12 @@ func partsChan(words ...string) <-chan string {
 	return c
 }
 
-var acroynms = []string{
+var acronyms = []string{
 	"ID", "UUID", "JSON", "XML", "ACL", "URL", "SSO",
 }
 
 func title(word string) string {
-	for _, ac := range acroynms {
+	for _, ac := range acronyms {
 		if strings.ToUpper(word) == ac {
 			return ac
 		}

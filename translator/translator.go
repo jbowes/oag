@@ -157,8 +157,8 @@ func convertOperation(tr *typeRegistry, def *v2.Document, n *visited, httpMethod
 		Path:       path,
 		HTTPMethod: httpMethod,
 	}
-	method.Reciever.ID = "c"
-	method.Reciever.Type = client.Name
+	method.Receiver.ID = "c"
+	method.Receiver.Type = client.Name
 
 	// add arguments. logic should be:
 	// path parameters in order of path
