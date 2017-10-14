@@ -1,9 +1,304 @@
-# oag
-Idiomatic Go client package generation from OpenAPI documents
+<!--
+  Attractive html formatting for rendering in github. sorry text editor
+  readers! Besides the header and section links, everything should be clean and
+  readable.
+-->
+<h1 align="center">oag</h1>
+<p align="center"><i>Idiomatic <a href="https://golang.org">Go</a> client package generation from <a href="https://www.openapis.org/">OpenAPI</a> documents</i></p>
 
-[![Alpha quality](https://img.shields.io/badge/status-ALPHA-orange.svg)]()
-[![Build Status](https://travis-ci.org/jbowes/oag.svg?branch=master)](https://travis-ci.org/jbowes/oag)
-[![GitHub release](https://img.shields.io/github/release/jbowes/oag.svg)](https://github.com/jbowes/oag/releases/latest)
-[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![codecov](https://img.shields.io/codecov/c/github/jbowes/oag.svg)](https://codecov.io/gh/jbowes/oag)
-[![Go Report Card](https://goreportcard.com/badge/github.com/jbowes/oag)](https://goreportcard.com/report/github.com/jbowes/oag)
+<div align="center">
+  <img alt="Alpha Quality" src="https://img.shields.io/badge/status-ALPHA-orange.svg" >
+  <a href="https://travis-ci.org/jbowes/oag"><img alt="Build Status" src="https://travis-ci.org/jbowes/oag.svg?branch=master"></a>
+  <a href="https://github.com/jbowes/oag/releases/latest"><img alt="GitHub release" src="https://img.shields.io/github/release/jbowes/oag.svg"></a>
+  <a href="./LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  <a href="https://codecov.io/gh/jbowes/oag"><img alt="codecov" src="https://img.shields.io/codecov/c/github/jbowes/oag.svg"></a>
+  <a href="https://goreportcard.com/report/github.com/jbowes/oag"><img alt="Go Report Card" src="https://goreportcard.com/badge/github.com/jbowes/oag"></a>
+</div><br /><br />
+
+
+## Introduction
+Introduction | [Examples] | [Usage] | [Configuration] | [Contributing] | [License] <br /><br />
+
+🚧 ___Disclaimer___: _`oag` is alpha quality software. The API of generated code
+and configuration file format may change without warning between revisions._
+___Please check your generated code before use!___ 🚧
+
+`oag` generates idiomatic [Go] client packages from [OpenAPI] documents.
+[OpenAPI 2.0][openapi2] (née Swagger 2.0) is supported, with support for
+[OpenAPI 3.0.0][openapi3] coming soon.
+
+### Features
+
+- __Idiomatic Concise Code__: `oag` generates code modeled after some of [Go]'s
+  best REST API clients, like [GitHub] and [Stripe].
+- __Extensible__: Generated code is written to a single file. You are free to
+  add your own files to the package, adding behaviour to the generated types.
+- __Fast__: Code is generated in milliseconds.
+- __Commit Friendly__: Generated code is deterministic and stable. Multiple runs
+  produce the same output. Document additions and removals create clean diffs.
+- __Build Tool Friendly__: If the generated code has not changed, nothing is
+  written, and timestamps stay the same. A run of `oag` won't needlessly trigger
+  other targets in `make`.
+- __Single File Output__: All generated code is written to a single file.
+  Removals from an [OpenAPI] document won't result in orphaned generated files.
+
+
+## Examples
+[Introduction] | Examples | [Usage] | [Configuration] | [Contributing] | [License] <br /><br />
+
+The minimal petstore OpenAPI 2.0 example (edited for brevity):
+
+```go
+// Client is an API client for all endpoints.
+type Client struct {
+    Pets *PetsClient
+    // contains filtered or unexported fields
+}
+
+// New returns a new Client with the default configuration.
+func New() *Client {}
+
+// Pet is a data type for API communication.
+type Pet struct {
+    ID   int     `json:"id"`
+    Name string  `json:"name"`
+    Tag  *string `json:"tag"` // Optional
+}
+
+// PetIter Iterates over a result set of Pets.
+type PetIter struct {
+    // contains filtered or unexported fields
+}
+
+// Close closes the PetIter and releases any associated resources. After
+// Close, any calls to Current will return an error.
+func (i *PetIter) Close() {}
+
+// Current returns the current Pet, and an optional error. Once an error
+// has been returned, the PetIter is closed, or the end of iteration is
+// reached, subsequent calls to Current will return an error.
+func (i *PetIter) Current() (*Pet, error) {}
+
+// Next advances the PetIter and returns a boolean indicating if the end
+// has been reached. Next must be called before the first call to Current.
+// Calls to Current after Next returns false will return an error.
+func (i *PetIter) Next() bool {}
+
+// PetsClient provides access to the /pets APIs
+type PetsClient endpoint
+
+// List corresponds to the GET /pets endpoint. Returns all pets from the
+// system that the user has access to
+func (c *PetsClient) List(ctx context.Context) *PetIter {}
+```
+
+[View the complete generated client code][petstore]
+
+## Usage
+[Introduction] | [Examples] | Usage | [Configuration] | [Contributing] | [License] <br /><br />
+
+#### Install `oag`
+
+``` bash
+go get -u github.com/jbowes/oag
+```
+
+#### Initialize and edit your configuration file
+
+``` bash
+# In the directory under your $GOPATH where your package will live
+oag init
+# Edit the created .oag.yaml file, following the comments
+```
+
+#### Generate and commit your code
+
+``` bash
+oag
+git add zz_oag_generated.go
+git commit -m "Add autogenerated API client"
+```
+
+#### Implement the [error] interface for your error types
+
+`oag` can determine which types are used as errors, but it does not know how you
+wish to present them.
+
+Create a new file in the same package that implements [error] for your type. For
+example, if `zz_oag_generated.go` contained:
+
+```go
+type APIError struct {
+	ID	string `json:"id"`
+	Message string `json:"message"`
+	Class	string `json:"class"`
+}
+```
+
+Where `ID` is some unique value generated per error, and `Class` is a group of
+error types, you could put the following in an `error.go` file:
+
+```go
+// Error returns a string representation of this error
+func (a *APIError) Error() string {
+	return fmt.Sprintf("%s: %s (%s)", a.ID, a.Message, a.Class)
+}
+```
+
+
+## Configuration
+[Introduction] | [Examples] | [Usage] | Configuration | [Contributing] | [License] <br /><br />
+
+`oag` keeps its configuration in a separate file rather than relying on OpenAPI
+vendor extensions. If you are not the original author of the OpenAPI document,
+you don't need to carry patches to it to use `oag`.
+
+By default, the file `.oag.yaml` is used for configuration. You may override
+this with the `-c` flag.
+
+### Configuration Directives
+
+#### document
+
+Required OpenAPI document to generate a client for.
+
+__Example:__
+```yaml
+document: ./openapi.yaml
+```
+
+#### package
+
+The package path and optional name to use in the generated code.
+
+__Example:__
+```yaml
+package:
+  path: github.com/jbowes/go-sample
+  name: sample
+```
+
+#### types
+
+Optional mapping of definitions to types.
+
+__Example:__
+```yaml
+types:
+  SomeDefinedType: github.com/org/package.TypeName
+```
+
+#### string_formats
+
+An optional map of OpenAPI `format` values to Go types. Schema fields, array
+items, and parameters that have these formats will be represented in the
+generated code with the provided type.
+
+Any types used here must implement the [TextMarshaler] interface.
+
+__Example:__
+```yaml
+string_formats:
+  telephone: github.com/org/package.TelephoneNumber
+```
+
+#### output
+
+An optional override for the default output file.
+
+__Example:__
+```yaml
+output: zz_oag_generated_client_file.go
+```
+
+#### boilerplate
+
+A niche configuration directive, allowing you to disable parts of `oag`'s code
+generation, particularly for shipping generated code for multiple OpenAPI
+documents in the same package.
+
+__Example:__
+```yaml
+boilerplate:
+  base_url: disabled
+  backend: disabled
+  endpoint: disabled
+  client_prefix: PutThisBeforeTypeNames
+```
+
+
+## Contributing
+[Introduction] | [Examples] | [Usage] | [Configuration] | Contributing | [License] <br /><br />
+
+I would love your help!
+
+`oag` is still a work in progress. You can help by:
+
+- Trying `oag` against different [OpenAPI] documents, and [reporting bugs][bug]
+  when the generated code is broken, or [suggesting improvements][enhancement]
+  to the generated code.
+- Opening a pull request to resolve an [open issue][issues].
+- Adding a feature or enhancement of your own! If it might be big, please
+  [open an issue][enhancement] first so we can discuss it.
+- Improving this `README` or adding other documentation to `oag`.
+- Letting [me] know if you're using `oag`.
+
+
+## License
+[Introduction] | [Examples] | [Usage] | [Configuration] | [Contributing] | License <br /><br />
+
+[MIT](./LICENSE)
+
+```
+MIT License
+
+Copyright (c) 2017 James Bowes
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+
+<!-- Section link definitions -->
+[introduction]: ./README.md#introduction
+[examples]: ./README.md#examples
+[usage]: ./README.md#usage
+[configuration]: ./README.md#configuration
+[contributing]: ./README.md#contributing
+[license]: ./README.md#license
+
+<!-- Other links -->
+[go]: https://golang.org
+
+[error]: https://golang.org/pkg/builtin/#error
+[textmarshaler]: https://golang.org/pkg/encoding/#TextMarshaler
+
+[github]: https://godoc.org/github.com/google/go-github/github
+[stripe]: https://godoc.org/github.com/stripe/stripe-go
+
+[openapi]: https://www.openapis.org
+[openapi2]: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md
+[openapi3]: https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+
+[issues]: ./issues
+[bug]: ./issues/new?labels=bug
+[enhancement]: ./issues/new?labels=enhancement
+
+[petstore]: ./_example/petstore/zz_oag_generated.go
+
+[me]: https://twitter.com/jrbowes
