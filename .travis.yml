@@ -7,4 +7,5 @@ before_install:
 install:
   - dep ensure
   - gometalinter --install
-script: make
+script: make ci
+after_success: bash <(curl -s https://codecov.io/bash)
