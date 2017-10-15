@@ -275,12 +275,12 @@ SOFTWARE.
 
 
 <!-- Section link definitions -->
-[introduction]: ./README.md#introduction
-[examples]: ./README.md#examples
-[usage]: ./README.md#usage
-[configuration]: ./README.md#configuration
-[contributing]: ./README.md#contributing
-[license]: ./README.md#license
+[introduction]: #introduction
+[examples]: #examples
+[usage]: #usage
+[configuration]: #configuration
+[contributing]: #contributing
+[license]: #license
 
 <!-- Other links -->
 [go]: https://golang.org
