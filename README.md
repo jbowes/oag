@@ -25,7 +25,7 @@ ___Please check your generated code before use!___ 🚧
 
 `oag` generates idiomatic [Go] client packages from [OpenAPI] documents.
 [OpenAPI 2.0][openapi2] (née Swagger 2.0) is supported, with support for
-[OpenAPI 3.0.0][openapi3] coming soon.
+[OpenAPI 3.0.0][openapi3] coming [soon](https://github.com/jbowes/oag/issues/5).
 
 ### Features
 
