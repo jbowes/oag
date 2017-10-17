@@ -23,7 +23,6 @@ func Translate(doc *v2.Document, qual, name string, types map[string]string, str
 		for _, def := range *doc.Definitions {
 			convertDefinition(tr, def.Name, def.Schema, types)
 		}
-
 	}
 
 	trie := &node{}
@@ -212,12 +211,12 @@ func convertOperation(tr *typeRegistry, def *v2.Document, n *visited, httpMethod
 		})
 	}
 
-	method.Return, method.Errors = convertOperationResponses(tr, methodName, o, p)
+	method.Return, method.Errors = convertOperationResponses(def, tr, methodName, o, p)
 
 	return method
 }
 
-func convertOperationResponses(tr *typeRegistry, methodName string, o *v2.Operation, p *pkg.Package) ([]pkg.Type, map[int]pkg.Type) {
+func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName string, o *v2.Operation, p *pkg.Package) ([]pkg.Type, map[int]pkg.Type) {
 	var rets []pkg.Type
 	errs := make(map[int]pkg.Type)
 
@@ -249,6 +248,12 @@ func convertOperationResponses(tr *typeRegistry, methodName string, o *v2.Operat
 
 			rets = append(rets, ret)
 		default:
+			if r.Reference != "" {
+				parts := strings.Split(r.Reference, "/")
+				refname := parts[len(parts)-1]
+				r = (*doc.Responses)[refname]
+			}
+
 			if t, ok := r.Schema.(*v2.ReferenceSchema); ok {
 				parts := strings.Split(t.Reference, "/")
 				refname := parts[len(parts)-1] // XXX rename for snake case

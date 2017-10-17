@@ -504,9 +504,8 @@ func (r *Responses) UnmarshalYAML(um func(interface{}) error) error {
 
 // Response is a single resposne from an operation, according to
 // https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#responseObject
-//
-// XXX handle reference
 type Response struct {
+	Reference   string `yaml:"$ref"` // XXX should be distinct type?
 	Description string // required
 	Schema      Schema
 	Headers     map[string]Header
@@ -516,6 +515,7 @@ type Response struct {
 // UnmarshalYAML unmarshals a Response from YAML or JSON.
 func (r *Response) UnmarshalYAML(um func(interface{}) error) error {
 	var y struct {
+		Reference   string `yaml:"$ref"`
 		Description string
 		Headers     map[string]Header
 		Examples    map[string]interface{}
@@ -527,6 +527,7 @@ func (r *Response) UnmarshalYAML(um func(interface{}) error) error {
 		return err
 	}
 
+	r.Reference = y.Reference
 	r.Description = y.Description
 	r.Headers = y.Headers
 	r.Examples = y.Examples
