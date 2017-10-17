@@ -17,7 +17,7 @@ func TestSetQueryArgs(t *testing.T) {
 	}{
 		{"no args", nil, ""},
 		{"string arg",
-			[]pkg.Param{{ID: "arg"}},
+			[]pkg.Param{{ID: "arg", Type: &pkg.IdentType{}}},
 			`
 
 				q := make(url.Values)
@@ -25,7 +25,7 @@ func TestSetQueryArgs(t *testing.T) {
 			`,
 		},
 		{"different name",
-			[]pkg.Param{{ID: "arg", Orig: "arg_thing"}},
+			[]pkg.Param{{ID: "arg", Orig: "arg_thing", Type: &pkg.IdentType{}}},
 			`
 
 				q := make(url.Values)
@@ -47,8 +47,8 @@ func TestSetQueryArgs(t *testing.T) {
 		{"space after martial, not between regular",
 			[]pkg.Param{
 				{ID: "arg1", Type: &pkg.IdentType{Marshal: true}},
-				{ID: "arg2"},
-				{ID: "arg3"},
+				{ID: "arg2", Type: &pkg.IdentType{}},
+				{ID: "arg3", Type: &pkg.IdentType{}},
 			},
 			`
 
@@ -65,7 +65,7 @@ func TestSetQueryArgs(t *testing.T) {
 		},
 
 		{"multi collection string arg",
-			[]pkg.Param{{ID: "arg", Collection: pkg.Multi, Type: &pkg.SliceType{}}},
+			[]pkg.Param{{ID: "arg", Collection: pkg.Multi, Type: &pkg.SliceType{Type: &pkg.IdentType{}}}},
 			`
 
 				q := make(url.Values)
@@ -99,7 +99,7 @@ func TestSetOptQueryArgs(t *testing.T) {
 	}{
 		{"no args", nil, ""},
 		{"string arg",
-			[]pkg.Field{{ID: "arg", Type: &pkg.PointerType{}}},
+			[]pkg.Field{{ID: "arg", Type: &pkg.PointerType{Type: &pkg.IdentType{}}}},
 			`
 
 				var q url.Values
@@ -112,7 +112,7 @@ func TestSetOptQueryArgs(t *testing.T) {
 			`,
 		},
 		{"different name",
-			[]pkg.Field{{ID: "arg", Orig: "arg_thing", Type: &pkg.PointerType{}}},
+			[]pkg.Field{{ID: "arg", Orig: "arg_thing", Type: &pkg.PointerType{Type: &pkg.IdentType{}}}},
 			`
 
 				var q url.Values
@@ -144,8 +144,8 @@ func TestSetOptQueryArgs(t *testing.T) {
 		{"space after martial, not between regular",
 			[]pkg.Field{
 				{ID: "arg1", Type: &pkg.PointerType{Type: &pkg.IdentType{Marshal: true}}},
-				{ID: "arg2", Type: &pkg.PointerType{}},
-				{ID: "arg3", Type: &pkg.PointerType{}},
+				{ID: "arg2", Type: &pkg.PointerType{Type: &pkg.IdentType{}}},
+				{ID: "arg3", Type: &pkg.PointerType{Type: &pkg.IdentType{}}},
 			},
 			`
 
@@ -172,7 +172,7 @@ func TestSetOptQueryArgs(t *testing.T) {
 		},
 
 		{"multi collection string arg",
-			[]pkg.Field{{ID: "arg", Collection: pkg.Multi, Type: &pkg.PointerType{Type: &pkg.SliceType{}}}},
+			[]pkg.Field{{ID: "arg", Collection: pkg.Multi, Type: &pkg.PointerType{Type: &pkg.SliceType{Type: &pkg.IdentType{}}}}},
 			`
 
 				var q url.Values
@@ -208,13 +208,13 @@ func TestSetHeaderArgs(t *testing.T) {
 	}{
 		{"no args", nil, ""},
 		{"string arg",
-			[]pkg.Param{{ID: "arg"}},
+			[]pkg.Param{{ID: "arg", Type: &pkg.IdentType{}}},
 			`req.Header.Set("arg", arg)
 
 			`,
 		},
 		{"different name",
-			[]pkg.Param{{ID: "arg", Orig: "arg_thing"}},
+			[]pkg.Param{{ID: "arg", Orig: "arg_thing", Type: &pkg.IdentType{}}},
 			`req.Header.Set("arg_thing", arg)
 
 			`,
@@ -232,8 +232,8 @@ func TestSetHeaderArgs(t *testing.T) {
 		{"space after martial, not between regular",
 			[]pkg.Param{
 				{ID: "arg1", Type: &pkg.IdentType{Marshal: true}},
-				{ID: "arg2"},
-				{ID: "arg3"},
+				{ID: "arg2", Type: &pkg.IdentType{}},
+				{ID: "arg3", Type: &pkg.IdentType{}},
 			},
 			`arg1Bytes, err := arg1.MarshalText()
     			if err != nil {
@@ -355,4 +355,29 @@ func TestErrSelectFunc(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStringFor(t *testing.T) {
+	tcs := []struct {
+		name string
+		in   pkg.Type
+		out  string
+	}{
+		{"string", &pkg.IdentType{Name: "string"}, "x"},
+		{"bool", &pkg.IdentType{Name: "bool"}, "strconv.FormatBool(x)"},
+		{"int", &pkg.IdentType{Name: "int"}, "strconv.Itoa(x)"},
+		{"float64", &pkg.IdentType{Name: "float64"}, "strconv.FormatFloat(x, 'f', -1, 64)"},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			esf := jen.Id("v").Op("=").Add(stringFor(tc.in, jen.Id("x")))
+			out := fmt.Sprintf("%#v", esf)
+			formatted, _ := format.Source([]byte("v = " + tc.out))
+			if out != string(formatted) {
+				t.Error("got:", out, "expected:", tc.out)
+			}
+		})
+	}
+
 }
