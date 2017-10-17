@@ -65,6 +65,30 @@ func TestConvertSchema(t *testing.T) {
 				}},
 			}}},
 		},
+		{
+			"object additionalProperties",
+			&v2.ObjectSchema{
+				AdditionalProperties: &v2.StringSchema{},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{{Name: "Foo", Type: &pkg.MapType{
+				Key:   &pkg.IdentType{Name: "string"},
+				Value: &pkg.IdentType{Name: "string"},
+			}}},
+		},
+		{
+			"object any additionalProperties",
+			&v2.ObjectSchema{
+				AnyAdditionalProperties: true,
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{{Name: "Foo", Type: &pkg.MapType{
+				Key:   &pkg.IdentType{Name: "string"},
+				Value: &pkg.InterfaceType{},
+			}}},
+		},
 	}
 
 	for _, tc := range tcs {

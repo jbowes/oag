@@ -631,8 +631,8 @@ func (s *SchemaMap) UnmarshalYAML(um func(interface{}) error) error {
 	return nil
 }
 
-func unmarshalSchema(yms yaml.MapSlice) (Schema, error) {
-	b, err := yaml.Marshal(&yms)
+func unmarshalSchema(yms interface{}) (Schema, error) {
+	b, err := yaml.Marshal(yms)
 	if err != nil {
 		return nil, err
 	}
@@ -763,8 +763,48 @@ type ObjectSchema struct {
 	Properties *SchemaMap
 	Required   *[]string
 
+	AdditionalProperties    Schema `yaml:"additionalProperties"` // null if defined as false
+	AnyAdditionalProperties bool   // if additionalProperties is true, this is set
+
 	MinProperties *uint64
 	MaxProperties *uint64
+}
+
+// UnmarshalYAML unmarshals an ObjectSchema from YAML or JSON.
+func (o *ObjectSchema) UnmarshalYAML(um func(interface{}) error) error {
+	var oy struct {
+		SchemaFields  `yaml:",inline"`
+		Descriminator *string
+
+		Properties           *SchemaMap
+		Required             *[]string
+		AdditionalProperties interface{} `yaml:"additionalProperties"` // null if defined as false
+
+		MinProperties *uint64
+		MaxProperties *uint64
+	}
+	if err := um(&oy); err != nil {
+		return err
+	}
+
+	o.SchemaFields = oy.SchemaFields
+	o.Descriminator = oy.Descriminator
+	o.Properties = oy.Properties
+	o.Required = oy.Required
+	o.MinProperties = oy.MinProperties
+	o.MaxProperties = oy.MaxProperties
+
+	switch t := oy.AdditionalProperties.(type) {
+	case bool:
+		o.AnyAdditionalProperties = t
+		return nil
+	case nil:
+		return nil
+	default: // try and use as a schema
+		var err error
+		o.AdditionalProperties, err = unmarshalSchema(t)
+		return err
+	}
 }
 
 // NullSchema is a literal null schema definition.

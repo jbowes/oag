@@ -22,8 +22,27 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 	switch s := schema.(type) {
 	case *v2.ObjectSchema:
 		t := &pkg.StructType{}
-		if s.Properties == nil { // XXX what happens when nil properties?
-			return t
+		if s.Properties == nil {
+			if !s.AnyAdditionalProperties && s.AdditionalProperties == nil {
+				// no properties at all. empty struct.
+				return t
+			}
+
+			mt := &pkg.MapType{Key: &pkg.IdentType{Name: "string"}}
+
+			if s.AnyAdditionalProperties {
+				mt.Value = &pkg.InterfaceType{}
+			} else {
+				mt.Value = tr.convertSchema(s.AdditionalProperties, &pkg.TypeDecl{
+					Name: td.Name + "Value"}, false)
+			}
+
+			if td != nil {
+				td.Type = mt
+				tr.types = append(tr.types, *td)
+			}
+
+			return &pkg.IdentType{Name: td.Name}
 		}
 
 		required := make(map[string]struct{})
