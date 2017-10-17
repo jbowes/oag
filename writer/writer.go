@@ -256,7 +256,7 @@ func setQueryArgs(g *jen.Group, errRet []jen.Code, args []pkg.Param) {
 					g.Line()
 				}
 			} else {
-				g.Id("q").Dot("Set").Call(jen.Lit(orig), jen.Id(q.ID))
+				g.Id("q").Dot("Set").Call(jen.Lit(orig), stringFor(q.Type, jen.Id(q.ID)))
 			}
 		case pkg.Multi:
 			st := q.Type.(*pkg.SliceType)
@@ -266,7 +266,7 @@ func setQueryArgs(g *jen.Group, errRet []jen.Code, args []pkg.Param) {
 					g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
 					g.Id("q").Dot("Add").Call(jen.Lit(orig), jen.String().Params(jen.Id("b")))
 				} else {
-					g.Id("q").Dot("Add").Call(jen.Lit(orig), jen.Id("v"))
+					g.Id("q").Dot("Add").Call(jen.Lit(orig), stringFor(st.Type, jen.Id("v")))
 				}
 			})
 
@@ -319,7 +319,7 @@ func setOptQueryArgs(g *jen.Group, errRet []jen.Code, qDefined bool, args []pkg.
 						g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
 						g.Id("q").Dot("Set").Call(jen.Lit(orig), jen.String().Params(jen.Id("b")))
 					} else {
-						g.Id("q").Dot("Set").Call(jen.Lit(orig), jen.Op("*").Id("opts").Dot(q.ID))
+						g.Id("q").Dot("Set").Call(jen.Lit(orig), stringFor(typ, jen.Op("*").Id("opts").Dot(q.ID)))
 					}
 				})
 			case pkg.Multi:
@@ -330,7 +330,7 @@ func setOptQueryArgs(g *jen.Group, errRet []jen.Code, qDefined bool, args []pkg.
 						g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
 						g.Id("q").Dot("Add").Call(jen.Lit(orig), jen.String().Params(jen.Id("b")))
 					} else {
-						g.Id("q").Dot("Add").Call(jen.Lit(orig), jen.Id("v"))
+						g.Id("q").Dot("Add").Call(jen.Lit(orig), stringFor(st.Type, jen.Id("v")))
 					}
 				})
 			default:
@@ -357,7 +357,7 @@ func setHeaderArgs(g *jen.Group, errRet []jen.Code, args []pkg.Param) {
 				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), jen.String().Params(jen.Id(h.ID+"Bytes")))
 				g.Line()
 			} else {
-				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), jen.Id(h.ID))
+				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), stringFor(h.Type, jen.Id(h.ID)))
 				if i == len(args)-1 {
 					g.Line()
 				}
@@ -423,4 +423,23 @@ func errSelectFunc(m *pkg.Method) jen.Code {
 			}
 		})
 	})
+}
+
+// stringFor converts basic IdentTypes to  strings
+func stringFor(typ pkg.Type, id jen.Code) jen.Code {
+	it, ok := typ.(*pkg.IdentType)
+	if !ok {
+		panic("unknown type for string conversion")
+	}
+
+	switch it.Name {
+	case "int":
+		return jen.Qual("strconv", "Itoa").Call(id)
+	case "float64":
+		return jen.Qual("strconv", "FormatFloat").Call(id, jen.LitRune('f'), jen.Lit(-1), jen.Lit(64))
+	case "bool":
+		return jen.Qual("strconv", "FormatBool").Call(id)
+	default: // treat as string
+		return id
+	}
 }
