@@ -102,6 +102,30 @@ func (t *IterType) Equal(o Type) bool {
 	return false
 }
 
+// MapType is a map type
+type MapType struct {
+	Key   Type
+	Value Type
+}
+
+// Equal implements equality for Types
+func (t *MapType) Equal(o Type) bool {
+	if ot, ok := o.(*MapType); ok {
+		return t.Key.Equal(ot.Key) && t.Value.Equal(ot.Value)
+	}
+
+	return false
+}
+
+// InterfaceType is an empty interface
+type InterfaceType struct{}
+
+// Equal implements equality for Types
+func (t *InterfaceType) Equal(o Type) bool {
+	_, ok := o.(*InterfaceType)
+	return ok
+}
+
 // TypeDecl is a type declaration.
 type TypeDecl struct {
 	Name    string

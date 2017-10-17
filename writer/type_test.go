@@ -21,6 +21,7 @@ func TestWriteType(t *testing.T) {
 		{"slice", &pkg.SliceType{Type: &pkg.IdentType{Name: "string"}}, "[]string"},
 		{"pointer", &pkg.PointerType{Type: &pkg.IdentType{Name: "string"}}, "*string"},
 		{"empty struct", &pkg.StructType{}, "struct{}"},
+		{"empty interface", &pkg.InterfaceType{}, "interface{}"},
 		{"struct",
 			&pkg.StructType{Fields: []pkg.Field{
 				{ID: "Foo", Type: &pkg.IdentType{Name: "string"}},
@@ -49,6 +50,13 @@ func TestWriteType(t *testing.T) {
 			`struct {
 				Bar struct{}
 			}`,
+		},
+		{"map",
+			&pkg.MapType{
+				Key:   &pkg.IdentType{Name: "string"},
+				Value: &pkg.IdentType{Name: "string"},
+			},
+			`map[string]string`,
 		},
 	}
 
