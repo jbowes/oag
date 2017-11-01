@@ -4,6 +4,9 @@ ci: lint report build
 build:
 	go build .
 
+test:
+	go test -v ./...
+
 cover:
 	go test -cover ./...
 

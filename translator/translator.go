@@ -36,8 +36,9 @@ func Translate(doc *v2.Document, qual, name string, types map[string]string, str
 		clientName := formatID(path[2].value(), "Client")
 		if len(path) == 3 { // Define the client
 			clients[clientName] = &pkg.Client{
-				Name:    clientName,
-				Comment: fmt.Sprintf("%s provides access to the /%s APIs", clientName, path[2].value()),
+				Name:        clientName,
+				ContextName: path[2].value(),
+				Comment:     fmt.Sprintf("%s provides access to the /%s APIs", clientName, path[2].value()),
 			}
 		}
 
@@ -157,6 +158,7 @@ func convertOperation(tr *typeRegistry, def *v2.Document, n *visited, httpMethod
 		HTTPMethod: httpMethod,
 	}
 	method.Receiver.ID = "c"
+	method.Receiver.Arg = "c"
 	method.Receiver.Type = client.Name
 
 	// add arguments. logic should be:
@@ -171,12 +173,13 @@ func convertOperation(tr *typeRegistry, def *v2.Document, n *visited, httpMethod
 	for _, p := range params {
 		pathParams = append(pathParams, pkg.Param{
 			ID:   string(p),
+			Arg:  formatReserved(string(p), client.ContextName),
 			Kind: pkg.Path,
 		})
 	}
 
 	for _, p := range o.Parameters {
-		newBody, newParam, newOpts := convertParameter(tr, def, methodName, pathParams, p)
+		newBody, newParam, newOpts := convertParameter(tr, def, methodName, pathParams, p, client)
 		if newBody != nil {
 			body = newBody
 		}
@@ -206,6 +209,7 @@ func convertOperation(tr *typeRegistry, def *v2.Document, n *visited, httpMethod
 
 		method.Params = append(method.Params, pkg.Param{
 			ID:   "opts",
+			Arg:  "opts",
 			Type: &pkg.PointerType{Type: &pkg.IdentType{Name: optsName}},
 			Kind: pkg.Opts,
 		})
@@ -285,7 +289,7 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 	return rets, errs
 }
 
-func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pathParams []pkg.Param, p v2.Parameter) (*pkg.Param, []pkg.Param, []pkg.Field) {
+func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pathParams []pkg.Param, p v2.Parameter, client *pkg.Client) (*pkg.Param, []pkg.Param, []pkg.Field) {
 	if ref, ok := p.(*v2.ReferenceParamter); ok {
 		parts := strings.Split(ref.Reference, "/")
 		p = (*def.Parameters)[parts[len(parts)-1]]
@@ -297,6 +301,7 @@ func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pat
 		b := p.(*v2.BodyParameter)
 		body := &pkg.Param{
 			ID:   "request",
+			Arg:  "request",
 			Kind: pkg.Body,
 			Type: tr.convertSchema(b.Schema, &pkg.TypeDecl{
 				Name: methodName + "Request",
@@ -306,6 +311,7 @@ func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pat
 		if t, ok := body.Type.(*pkg.IdentType); ok {
 			if t.Name != methodName+"Request" {
 				body.ID = formatVar(t.Name)
+				body.Arg = formatReserved(body.ID, client.ContextName)
 			}
 		}
 		body.Type = &pkg.PointerType{Type: body.Type}
@@ -319,6 +325,7 @@ func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pat
 
 			typ, _ := tr.typeForParameter(p)
 			pathParams[i].ID = formatVar(pathParams[i].ID)
+			pathParams[i].Arg = formatReserved(pathParams[i].ID, client.ContextName)
 			pathParams[i].Type = typ
 			break
 		}
@@ -333,9 +340,11 @@ func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pat
 		typ, cf := tr.typeForParameter(p)
 
 		if p.IsRequired() {
+			paramID := formatVar(p.GetName())
 			param := pkg.Param{
-				ID:         formatVar(p.GetName()),
+				ID:         paramID,
 				Orig:       p.GetName(),
+				Arg:        formatReserved(paramID, client.ContextName),
 				Type:       typ,
 				Kind:       k,
 				Collection: cf,

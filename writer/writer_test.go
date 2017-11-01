@@ -17,7 +17,7 @@ func TestSetQueryArgs(t *testing.T) {
 	}{
 		{"no args", nil, ""},
 		{"string arg",
-			[]pkg.Param{{ID: "arg", Type: &pkg.IdentType{}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Type: &pkg.IdentType{}}},
 			`
 
 				q := make(url.Values)
@@ -25,15 +25,23 @@ func TestSetQueryArgs(t *testing.T) {
 			`,
 		},
 		{"different name",
-			[]pkg.Param{{ID: "arg", Orig: "arg_thing", Type: &pkg.IdentType{}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Orig: "arg_thing", Type: &pkg.IdentType{}}},
 			`
 
 				q := make(url.Values)
 				q.Set("arg_thing", arg)
 			`,
 		},
+		{"different arg value",
+			[]pkg.Param{{ID: "arg", Arg: "different", Orig: "arg_thing", Type: &pkg.IdentType{}}},
+			`
+
+				q := make(url.Values)
+				q.Set("arg_thing", different)
+			`,
+		},
 		{"marshal",
-			[]pkg.Param{{ID: "arg", Type: &pkg.IdentType{Marshal: true}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Type: &pkg.IdentType{Marshal: true}}},
 			`
 
 				q := make(url.Values)
@@ -46,9 +54,9 @@ func TestSetQueryArgs(t *testing.T) {
 		},
 		{"space after martial, not between regular",
 			[]pkg.Param{
-				{ID: "arg1", Type: &pkg.IdentType{Marshal: true}},
-				{ID: "arg2", Type: &pkg.IdentType{}},
-				{ID: "arg3", Type: &pkg.IdentType{}},
+				{ID: "arg1", Arg: "arg1", Type: &pkg.IdentType{Marshal: true}},
+				{ID: "arg2", Arg: "arg2", Type: &pkg.IdentType{}},
+				{ID: "arg3", Arg: "arg3", Type: &pkg.IdentType{}},
 			},
 			`
 
@@ -65,7 +73,7 @@ func TestSetQueryArgs(t *testing.T) {
 		},
 
 		{"multi collection string arg",
-			[]pkg.Param{{ID: "arg", Collection: pkg.Multi, Type: &pkg.SliceType{Type: &pkg.IdentType{}}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Collection: pkg.Multi, Type: &pkg.SliceType{Type: &pkg.IdentType{}}}},
 			`
 
 				q := make(url.Values)
@@ -208,19 +216,19 @@ func TestSetHeaderArgs(t *testing.T) {
 	}{
 		{"no args", nil, ""},
 		{"string arg",
-			[]pkg.Param{{ID: "arg", Type: &pkg.IdentType{}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Type: &pkg.IdentType{}}},
 			`req.Header.Set("arg", arg)
 
 			`,
 		},
 		{"different name",
-			[]pkg.Param{{ID: "arg", Orig: "arg_thing", Type: &pkg.IdentType{}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Orig: "arg_thing", Type: &pkg.IdentType{}}},
 			`req.Header.Set("arg_thing", arg)
 
 			`,
 		},
 		{"marshal",
-			[]pkg.Param{{ID: "arg", Type: &pkg.IdentType{Marshal: true}}},
+			[]pkg.Param{{ID: "arg", Arg: "arg", Type: &pkg.IdentType{Marshal: true}}},
 			`argBytes, err := arg.MarshalText()
     			if err != nil {
     				return
@@ -231,9 +239,9 @@ func TestSetHeaderArgs(t *testing.T) {
 		},
 		{"space after martial, not between regular",
 			[]pkg.Param{
-				{ID: "arg1", Type: &pkg.IdentType{Marshal: true}},
-				{ID: "arg2", Type: &pkg.IdentType{}},
-				{ID: "arg3", Type: &pkg.IdentType{}},
+				{ID: "arg1", Arg: "arg1", Type: &pkg.IdentType{Marshal: true}},
+				{ID: "arg2", Arg: "arg2", Type: &pkg.IdentType{}},
+				{ID: "arg3", Arg: "arg3", Type: &pkg.IdentType{}},
 			},
 			`arg1Bytes, err := arg1.MarshalText()
     			if err != nil {
