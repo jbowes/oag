@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Support references in responses.
+- Fixed an issue where reserved keywords were being used as function/method arguments.
 
 ## [0.0.1] - 2017-10-15
 
