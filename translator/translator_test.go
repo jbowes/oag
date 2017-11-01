@@ -42,3 +42,23 @@ func TestMethodMap(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatReserved(t *testing.T) {
+	tcs := []struct {
+		name    string
+		in      string
+		context string
+		out     string
+	}{
+		{"not reserved", "value", "testing", "value"},
+		{"reserved", "type", "testing", "testingType"},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			if out := formatReserved(tc.in, tc.context); out != tc.out {
+				t.Error("got:", out, "expected:", tc.out)
+			}
+		})
+	}
+}

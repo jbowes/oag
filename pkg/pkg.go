@@ -162,8 +162,9 @@ func (f Field) equal(of Field) bool {
 // Client is a struct that holds the methods for communicating with an API
 // endpoint
 type Client struct {
-	Name    string
-	Comment string
+	Name        string
+	Comment     string
+	ContextName string
 
 	Methods []Method
 }
@@ -172,6 +173,7 @@ type Client struct {
 type Method struct {
 	Receiver struct {
 		ID   string
+		Arg  string
 		Type string
 	}
 
@@ -216,6 +218,7 @@ const (
 type Param struct {
 	ID         string
 	Orig       string // original name, ie for query params or headers
+	Arg        string // argument name, this is to avoid reserved keywords being used
 	Type       Type
 	Kind       Kind
 	Collection Collection

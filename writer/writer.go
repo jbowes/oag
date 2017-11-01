@@ -75,7 +75,7 @@ func convertClientMethod(f *jen.File, m *pkg.Method, decls []pkg.TypeDecl) {
 
 	params := []jen.Code{jen.Id("ctx").Qual("context", "Context")}
 	for _, p := range m.Params {
-		v := jen.Id(p.ID).Do(writeType(p.Type))
+		v := jen.Id(p.Arg).Do(writeType(p.Type))
 
 		switch p.Kind {
 		case pkg.Path:
@@ -85,7 +85,7 @@ func convertClientMethod(f *jen.File, m *pkg.Method, decls []pkg.TypeDecl) {
 		case pkg.Header:
 			headerArgs = append(headerArgs, p)
 		case pkg.Body:
-			body = jen.Id(p.ID)
+			body = jen.Id(p.Arg)
 		case pkg.Opts:
 			for _, d := range decls {
 				if d.Name != typeName(p.Type) {
@@ -250,13 +250,13 @@ func setQueryArgs(g *jen.Group, errRet []jen.Code, args []pkg.Param) {
 			if t, ok := q.Type.(*pkg.IdentType); ok && t.Marshal {
 				g.List(jen.Id(q.ID+"Bytes"), jen.Err()).Op(":=").Id(q.ID).Dot("MarshalText").Call()
 				g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
-				g.Id("q").Dot("Set").Call(jen.Lit(orig), jen.String().Params(jen.Id(q.ID+"Bytes")))
+				g.Id("q").Dot("Set").Call(jen.Lit(orig), jen.String().Params(jen.Id(q.Arg+"Bytes")))
 
 				if i != len(args)-1 {
 					g.Line()
 				}
 			} else {
-				g.Id("q").Dot("Set").Call(jen.Lit(orig), stringFor(q.Type, jen.Id(q.ID)))
+				g.Id("q").Dot("Set").Call(jen.Lit(orig), stringFor(q.Type, jen.Id(q.Arg)))
 			}
 		case pkg.Multi:
 			st := q.Type.(*pkg.SliceType)
@@ -352,12 +352,12 @@ func setHeaderArgs(g *jen.Group, errRet []jen.Code, args []pkg.Param) {
 		switch h.Collection {
 		case pkg.None:
 			if t, ok := h.Type.(*pkg.IdentType); ok && t.Marshal {
-				g.List(jen.Id(h.ID+"Bytes"), jen.Err()).Op(":=").Id(h.ID).Dot("MarshalText").Call()
+				g.List(jen.Id(h.Arg+"Bytes"), jen.Err()).Op(":=").Id(h.Arg).Dot("MarshalText").Call()
 				g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
-				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), jen.String().Params(jen.Id(h.ID+"Bytes")))
+				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), jen.String().Params(jen.Id(h.Arg+"Bytes")))
 				g.Line()
 			} else {
-				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), stringFor(h.Type, jen.Id(h.ID)))
+				g.Id("req").Dot("Header").Dot("Set").Call(jen.Lit(orig), stringFor(h.Type, jen.Id(h.Arg)))
 				if i == len(args)-1 {
 					g.Line()
 				}
