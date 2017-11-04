@@ -11,6 +11,7 @@ func Mutate(p *pkg.Package) *pkg.Package {
 		combineErrorsWithDefault,
 		inlinePrimitiveTypes,
 		inlineResponseStructs,
+		hoistEmbeddedStuctFields,
 		removeUnusedDecls,
 	}
 
@@ -113,6 +114,78 @@ func inlineResponseStructs(p *pkg.Package) *pkg.Package {
 				}
 
 				return t
+			})
+		}
+	}
+
+	return p
+}
+
+// hoistEmbeddedStuctFields finds any embedded structs from allOf schemas, and
+// hoists their fields into the embedding struct, when the embedded struct is not
+// referenced elsewhere.
+func hoistEmbeddedStuctFields(p *pkg.Package) *pkg.Package {
+	// XXX dedupe this code with inlineResponseStructs
+	ctxs := make(map[pkg.IdentType]struct {
+		c typeContext
+		n int
+	}, len(p.TypeDecls))
+
+	reachDecls(p, func(c typeContext, i *pkg.IdentType) bool {
+		v := ctxs[*i]
+		v.c |= c
+		v.n++
+		ctxs[*i] = v
+		return true
+	})
+
+	for _, d := range p.TypeDecls {
+		di := pkg.IdentType{Name: d.Name}
+		if pc, ok := ctxs[di]; ok {
+			d.Type = recurseType(d.Type, decl, func(t pkg.Type, c typeContext) pkg.Type {
+				st, ok := t.(*pkg.StructType)
+				if !ok {
+					return t
+				}
+
+				var nf []pkg.Field
+
+				for i := range st.Fields {
+					f := st.Fields[i]
+					if f.ID != "" {
+						nf = append(nf, f)
+						continue
+					}
+
+					var embedded *pkg.StructType
+					switch ft := f.Type.(type) {
+					case *pkg.IdentType:
+						if cc, ok := ctxs[*ft]; !ok || pc.n < cc.n {
+							nf = append(nf, f)
+							continue
+						}
+
+						resolved := resolve(p, ft)
+						if rst, ok := resolved.(*pkg.StructType); ok {
+							embedded = rst
+						} else {
+							nf = append(nf, f)
+							continue
+						}
+					case *pkg.StructType:
+						embedded = ft
+					default:
+						nf = append(nf, f)
+						continue
+					}
+
+					for j := range embedded.Fields {
+						nf = append(nf, embedded.Fields[j])
+					}
+				}
+
+				st.Fields = nf
+				return st
 			})
 		}
 	}
