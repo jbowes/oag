@@ -120,6 +120,13 @@ func TestUnmarshalParameter(t *testing.T) {
 				ArrayItem:       ArrayItem{Items: &StringItem{}},
 			},
 		},
+		{
+			"$ref",
+			`
+			- $ref: '#/parameters/TestParam'
+			`,
+			&ReferenceParamter{Reference: "#/parameters/TestParam"},
+		},
 	}
 
 	for _, tc := range tcs {

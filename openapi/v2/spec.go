@@ -164,7 +164,7 @@ func unmarshalParameter(y map[string]interface{}) (Parameter, error) {
 	if _, ok := y["$ref"]; ok {
 		var v ReferenceParamter
 		err = yaml.Unmarshal(b, &v)
-		return v, err
+		return &v, err
 	} else if y["in"] == "body" {
 		var v BodyParameter
 		err = yaml.Unmarshal(b, &v)
