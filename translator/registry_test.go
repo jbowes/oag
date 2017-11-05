@@ -89,6 +89,46 @@ func TestConvertSchema(t *testing.T) {
 				Value: &pkg.InterfaceType{},
 			}}},
 		},
+		{
+			"allOf empty",
+			&v2.AllOfSchema{
+				AllOf: []v2.Schema{},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{{Name: "Foo", Type: &pkg.StructType{Fields: []pkg.Field{}}}},
+		},
+		{
+			"allOf reference and struct",
+			&v2.AllOfSchema{
+				AllOf: []v2.Schema{
+					&v2.ReferenceSchema{Reference: "#/definitions/RefField"},
+					&v2.ObjectSchema{
+						Properties: &v2.SchemaMap{
+							{Name: "field", Schema: &v2.StringSchema{}},
+						},
+						Required: &[]string{"field"},
+					},
+				},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{
+				{
+					Name:    "FooAllOf1",
+					Comment: "FooAllOf1 is a data type for API communication.",
+					Type: &pkg.StructType{Fields: []pkg.Field{
+						{ID: "Field", Type: &pkg.IdentType{Name: "string"}, Orig: "field"},
+					}},
+				},
+				{
+					Name: "Foo", Type: &pkg.StructType{Fields: []pkg.Field{
+						{Type: &pkg.IdentType{Name: "RefField"}},
+						{Type: &pkg.IdentType{Name: "FooAllOf1"}},
+					}},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tcs {

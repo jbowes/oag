@@ -106,6 +106,31 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 		ret = &pkg.SliceType{Type: tr.convertSchema(s.Items, &pkg.TypeDecl{
 			Name: td.Name + "Items",
 		}, false)}
+	case *v2.AllOfSchema:
+		fields := make([]pkg.Field, len(s.AllOf))
+
+		for i := range s.AllOf {
+			sn := fmt.Sprintf("%sAllOf%d", td.Name, i)
+			field := pkg.Field{
+				Type: tr.convertSchema(s.AllOf[i], &pkg.TypeDecl{
+					Name:    sn,
+					Comment: fmt.Sprintf("%s is a data type for API communication.", sn),
+				}, false),
+			}
+
+			fields[i] = field
+		}
+
+		t := &pkg.StructType{
+			Fields: fields,
+		}
+
+		if td != nil {
+			td.Type = t
+			tr.types = append(tr.types, *td)
+		}
+
+		return &pkg.IdentType{Name: td.Name}
 	default:
 		// XXX handle this
 		panic("unknown type")

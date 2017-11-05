@@ -9,10 +9,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Support non-string types in query and header parameters.
 - Support additionalProperties when no properties are defined, creating maps.
+- Support allOf. Referenced schemas are included as embedded structs. Inline
+  schemas have their fields included in the main struct directly.
 
 ### Fixed
 - Support references in responses.
-- Fixed an issue where reserved keywords were being used as function/method arguments.
+- Fixed an issue where reserved keywords were being used as function/method
+  arguments.
 - Fix support for reference parameters.
 
 ## [0.0.1] - 2017-10-15
