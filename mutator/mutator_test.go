@@ -172,10 +172,10 @@ func TestInlineResponseStruct(t *testing.T) {
 		return pkg.Package{
 			TypeDecls: []pkg.TypeDecl{
 				{Name: "FieldThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "string"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
 				}},
 				{Name: "StructThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "FieldThing"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "FieldThing"}}},
 				}},
 			},
 			Clients: c,
@@ -186,12 +186,26 @@ func TestInlineResponseStruct(t *testing.T) {
 		return pkg.Package{
 			TypeDecls: []pkg.TypeDecl{
 				{Name: "FieldThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "string"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
 				}},
 				{Name: "StructThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.StructType{
-						Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "string"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.StructType{
+						Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
 					}}},
+				}},
+			},
+			Clients: c,
+		}
+	}
+
+	embeddedStructPkg := func(c ...pkg.Client) pkg.Package {
+		return pkg.Package{
+			TypeDecls: []pkg.TypeDecl{
+				{Name: "FieldThing", Type: &pkg.StructType{
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
+				}},
+				{Name: "StructThing", Type: &pkg.StructType{
+					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "FieldThing"}}},
 				}},
 			},
 			Clients: c,
@@ -202,13 +216,13 @@ func TestInlineResponseStruct(t *testing.T) {
 		return pkg.Package{
 			TypeDecls: []pkg.TypeDecl{
 				{Name: "FieldThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "string"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
 				}},
 				{Name: "StructThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "FieldThing"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "FieldThing"}}},
 				}},
 				{Name: "OtherStructThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "FieldThing"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "FieldThing"}}},
 				}},
 			},
 			Clients: c,
@@ -219,15 +233,15 @@ func TestInlineResponseStruct(t *testing.T) {
 		return pkg.Package{
 			TypeDecls: []pkg.TypeDecl{
 				{Name: "FieldThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "string"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
 				}},
 				{Name: "StructThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.StructType{
-						Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "string"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.StructType{
+						Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
 					}}},
 				}},
 				{Name: "OtherStructThing", Type: &pkg.StructType{
-					Fields: []pkg.Field{{Type: &pkg.IdentType{Name: "FieldThing"}}},
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "FieldThing"}}},
 				}},
 			},
 			Clients: c,
@@ -247,6 +261,15 @@ func TestInlineResponseStruct(t *testing.T) {
 			}}}),
 			basePkg(pkg.Client{Methods: []pkg.Method{{
 				Params: []pkg.Param{{Type: &pkg.IdentType{Name: "StructThing"}}},
+			}}}),
+		},
+
+		{"not inlined if embedded struct",
+			embeddedStructPkg(pkg.Client{Methods: []pkg.Method{{
+				Return: []pkg.Type{&pkg.IdentType{Name: "StructThing"}},
+			}}}),
+			embeddedStructPkg(pkg.Client{Methods: []pkg.Method{{
+				Return: []pkg.Type{&pkg.IdentType{Name: "StructThing"}},
 			}}}),
 		},
 
