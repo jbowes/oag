@@ -82,6 +82,21 @@ func TestSetQueryArgs(t *testing.T) {
 				}
 			`,
 		},
+
+		{"multi collection marshal",
+			[]pkg.Param{{ID: "arg", Arg: "arg", Collection: pkg.Multi, Type: &pkg.SliceType{Type: &pkg.IdentType{Marshal: true}}}},
+			`
+
+				q := make(url.Values)
+				for _, v := range arg {
+					b, err := v.MarshalText()
+					if err != nil {
+						return
+					}
+					q.Add("arg", string(b))
+				}
+			`,
+		},
 	}
 
 	for _, tc := range tcs {
@@ -188,6 +203,24 @@ func TestSetOptQueryArgs(t *testing.T) {
 					q = make(url.Values)
 					for _, v := range opts.arg {
 						q.Add("arg", v)
+					}
+				}
+			`,
+		},
+
+		{"multi collection marshal",
+			[]pkg.Field{{ID: "arg", Collection: pkg.Multi, Type: &pkg.PointerType{Type: &pkg.SliceType{Type: &pkg.IdentType{Marshal: true}}}}},
+			`
+
+				var q url.Values
+				if opts != nil {
+					q = make(url.Values)
+					for _, v := range opts.arg {
+						b, err := v.MarshalText()
+						if err != nil {
+							return
+						}
+						q.Add("arg", string(b))
 					}
 				}
 			`,
