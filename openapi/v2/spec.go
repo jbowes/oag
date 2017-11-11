@@ -759,7 +759,7 @@ func (a *AllOfSchema) UnmarshalYAML(um func(interface{}) error) error {
 // ObjectSchema is a schema definition for an object.
 type ObjectSchema struct {
 	SchemaFields  `yaml:",inline"`
-	Descriminator *string
+	Discriminator *string
 
 	Properties *SchemaMap
 	Required   *[]string
@@ -775,7 +775,7 @@ type ObjectSchema struct {
 func (o *ObjectSchema) UnmarshalYAML(um func(interface{}) error) error {
 	var oy struct {
 		SchemaFields  `yaml:",inline"`
-		Descriminator *string
+		Discriminator *string
 
 		Properties           *SchemaMap
 		Required             *[]string
@@ -789,7 +789,7 @@ func (o *ObjectSchema) UnmarshalYAML(um func(interface{}) error) error {
 	}
 
 	o.SchemaFields = oy.SchemaFields
-	o.Descriminator = oy.Descriminator
+	o.Discriminator = oy.Discriminator
 	o.Properties = oy.Properties
 	o.Required = oy.Required
 	o.MinProperties = oy.MinProperties
