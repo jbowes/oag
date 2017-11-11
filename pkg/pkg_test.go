@@ -14,7 +14,7 @@ func TestTypeEqual(t *testing.T) {
 		&StructType{Fields: []Field{{ID: "Name", Type: &IdentType{Name: "Thing"}}}},
 		&MapType{Key: &IdentType{Name: "string"}, Value: &IdentType{Name: "int"}},
 		&MapType{Key: &IdentType{Name: "int"}, Value: &SliceType{&IdentType{Name: "int"}}},
-		&InterfaceType{},
+		&EmptyInterfaceType{},
 	}
 
 	for i := range cases {

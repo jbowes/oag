@@ -31,7 +31,7 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 			mt := &pkg.MapType{Key: &pkg.IdentType{Name: "string"}}
 
 			if s.AnyAdditionalProperties {
-				mt.Value = &pkg.InterfaceType{}
+				mt.Value = &pkg.EmptyInterfaceType{}
 			} else {
 				mt.Value = tr.convertSchema(s.AdditionalProperties, &pkg.TypeDecl{
 					Name: td.Name + "Value"}, false)

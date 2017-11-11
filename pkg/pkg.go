@@ -117,12 +117,12 @@ func (t *MapType) Equal(o Type) bool {
 	return false
 }
 
-// InterfaceType is an empty interface
-type InterfaceType struct{}
+// EmptyInterfaceType is an empty interface
+type EmptyInterfaceType struct{}
 
 // Equal implements equality for Types
-func (t *InterfaceType) Equal(o Type) bool {
-	_, ok := o.(*InterfaceType)
+func (t *EmptyInterfaceType) Equal(o Type) bool {
+	_, ok := o.(*EmptyInterfaceType)
 	return ok
 }
 

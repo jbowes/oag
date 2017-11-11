@@ -86,7 +86,7 @@ func TestConvertSchema(t *testing.T) {
 			&pkg.IdentType{Name: "Foo"},
 			[]pkg.TypeDecl{{Name: "Foo", Type: &pkg.MapType{
 				Key:   &pkg.IdentType{Name: "string"},
-				Value: &pkg.InterfaceType{},
+				Value: &pkg.EmptyInterfaceType{},
 			}}},
 		},
 		{

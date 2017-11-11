@@ -27,7 +27,7 @@ func writeType(typ pkg.Type) func(s *jen.Statement) {
 			s.Struct(convertFields(t.Fields)...)
 		case *pkg.MapType:
 			s.Map(jen.Do(writeType(t.Key))).Do(writeType(t.Value))
-		case *pkg.InterfaceType:
+		case *pkg.EmptyInterfaceType:
 			s.Interface()
 		default:
 			panic("unhandled type")
