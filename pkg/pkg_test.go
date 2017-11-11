@@ -15,6 +15,17 @@ func TestTypeEqual(t *testing.T) {
 		&MapType{Key: &IdentType{Name: "string"}, Value: &IdentType{Name: "int"}},
 		&MapType{Key: &IdentType{Name: "int"}, Value: &SliceType{&IdentType{Name: "int"}}},
 		&EmptyInterfaceType{},
+		&InterfaceType{Methods: []InterfaceMethod{}},
+		&InterfaceType{Methods: []InterfaceMethod{
+			{Name: "GetFoo", Return: &IdentType{Name: "string"}},
+		}},
+		&InterfaceType{Methods: []InterfaceMethod{
+			{Name: "GetFoo", Return: &IdentType{Name: "int"}},
+		}},
+		&InterfaceType{Methods: []InterfaceMethod{
+			{Name: "GetBar", Return: &IdentType{Name: "int"}},
+			{Name: "GetFoo", Return: &IdentType{Name: "string"}},
+		}},
 	}
 
 	for i := range cases {

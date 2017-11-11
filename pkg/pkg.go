@@ -71,21 +71,22 @@ type StructType struct {
 
 // Equal implements equality for Types
 func (t *StructType) Equal(o Type) bool {
-	if ot, ok := o.(*StructType); ok {
-		if len(t.Fields) != len(ot.Fields) {
-			return false
-		}
-
-		for i, f := range t.Fields {
-			if !f.equal(ot.Fields[i]) {
-				return false
-			}
-		}
-
-		return true
+	ot, ok := o.(*StructType)
+	if !ok {
+		return false
 	}
 
-	return false
+	if len(t.Fields) != len(ot.Fields) {
+		return false
+	}
+
+	for i, f := range t.Fields {
+		if !f.equal(ot.Fields[i]) {
+			return false
+		}
+	}
+
+	return true
 }
 
 // IterType is used for return types, indicating they're iterators
@@ -126,9 +127,55 @@ func (t *EmptyInterfaceType) Equal(o Type) bool {
 	return ok
 }
 
+// InterfaceType is an interface that represents the common values in an
+// OpenAPI discriminator type.
+type InterfaceType struct {
+	Methods      []InterfaceMethod
+	Implementors []InterfaceImplementor
+}
+
+// Equal implements equality for Types
+func (t *InterfaceType) Equal(o Type) bool {
+	ot, ok := o.(*InterfaceType)
+	if !ok {
+		return false
+	}
+
+	if len(t.Methods) != len(ot.Methods) {
+		return false
+	}
+
+	for i, m := range t.Methods {
+		if !m.equal(ot.Methods[i]) {
+			return false
+		}
+	}
+
+	return true
+}
+
+// InterfaceMethod is a method on an interface
+type InterfaceMethod struct {
+	Name    string
+	Return  Type
+	Comment string
+}
+
+func (m InterfaceMethod) equal(o InterfaceMethod) bool {
+	return m.Name == o.Name && m.Return.Equal(o.Return)
+}
+
+// InterfaceImplementor is an Implementor of an interface created from
+// discriminators
+type InterfaceImplementor struct {
+	Discriminator string
+	Type          Type
+}
+
 // TypeDecl is a type declaration.
 type TypeDecl struct {
 	Name    string
+	Orig    string
 	Comment string
 	Type    Type
 }
