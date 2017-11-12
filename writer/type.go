@@ -29,6 +29,8 @@ func writeType(typ pkg.Type) func(s *jen.Statement) {
 			s.Map(jen.Do(writeType(t.Key))).Do(writeType(t.Value))
 		case *pkg.EmptyInterfaceType:
 			s.Interface()
+		case *pkg.InterfaceType:
+			s.Interface(convertInterfaceMethods(t.Methods)...)
 		default:
 			panic("unhandled type")
 		}
@@ -64,6 +66,32 @@ func convertFields(fields []pkg.Field) []jen.Code {
 		}
 
 		o = append(o, sf)
+		if first {
+			first = false
+		}
+	}
+
+	return o
+}
+
+func convertInterfaceMethods(methods []pkg.InterfaceMethod) []jen.Code {
+	var o []jen.Code
+	first := true
+	for _, m := range methods {
+		im := jen.Id(m.Name).Params().Do(writeType(m.Return))
+
+		if m.Comment != "" {
+			if len(m.Comment) < 80 {
+				im.Comment(strings.Replace(m.Comment, "\n", " ", -1))
+			} else {
+				if !first {
+					o = append(o, jen.Empty())
+				}
+				o = append(o, jen.Comment(formatComment(m.Comment)))
+			}
+		}
+
+		o = append(o, im)
 		if first {
 			first = false
 		}
