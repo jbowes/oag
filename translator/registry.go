@@ -9,8 +9,9 @@ import (
 )
 
 type typeRegistry struct {
-	strFmt stringFormat
-	types  []pkg.TypeDecl
+	strFmt         stringFormat
+	types          []pkg.TypeDecl
+	discriminators map[string]*pkg.TypeDecl
 }
 
 func (tr *typeRegistry) add(td pkg.TypeDecl) {
@@ -37,11 +38,8 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 					Name: td.Name + "Value"}, false)
 			}
 
-			if td != nil {
-				td.Type = mt
-				tr.types = append(tr.types, *td)
-			}
-
+			td.Type = mt
+			tr.types = append(tr.types, *td)
 			return &pkg.IdentType{Name: td.Name}
 		}
 
@@ -50,6 +48,52 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 			for _, field := range *s.Required {
 				required[field] = struct{}{}
 			}
+		}
+
+		if s.Discriminator != nil {
+			t := &pkg.InterfaceType{}
+
+			for _, prop := range *s.Properties {
+				method := pkg.InterfaceMethod{
+					Name: formatID("Get", prop.Name),
+				}
+
+				method.Comment = commentForPropSchema(prop.Schema)
+
+				sn := td.Name + formatID(prop.Name)
+				method.Return = tr.convertSchema(prop.Schema, &pkg.TypeDecl{
+					Name:    sn,
+					Comment: fmt.Sprintf("%s is a data type for API communication.", sn),
+				}, false)
+
+				if _, ok := required[prop.Name]; !ok {
+					method.Return = &pkg.PointerType{Type: method.Return}
+					if method.Comment == "" {
+						method.Comment = "Optional"
+					}
+				}
+
+				t.Methods = append(t.Methods, method)
+			}
+
+			td.Type = t
+			tr.types = append(tr.types, *td)
+
+			if tr.discriminators == nil {
+				tr.discriminators = make(map[string]*pkg.TypeDecl)
+			}
+			tr.discriminators[td.Name] = &tr.types[len(tr.types)-1]
+
+			oldDiscriminator := s.Discriminator
+			s.Discriminator = nil
+			mn := td.Name + "Meta"
+			tr.convertSchema(s, &pkg.TypeDecl{
+				Name:    mn,
+				Comment: fmt.Sprintf("%s is an abstract data type for API communication.", mn),
+			}, false)
+
+			s.Discriminator = oldDiscriminator
+			return &pkg.IdentType{Name: td.Name}
 		}
 
 		for _, prop := range *s.Properties {
@@ -61,14 +105,7 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 				field.Orig = prop.Name
 			}
 
-			fieldComment := ""
-			if prop.Schema.GetTitle() != nil {
-				fieldComment += *prop.Schema.GetTitle()
-			}
-			if prop.Schema.GetDescription() != nil {
-				fieldComment += *prop.Schema.GetDescription()
-			}
-			field.Comment = fieldComment
+			field.Comment = commentForPropSchema(prop.Schema)
 
 			sn := td.Name + formatID(prop.Name)
 			field.Type = tr.convertSchema(prop.Schema, &pkg.TypeDecl{
@@ -85,11 +122,9 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 
 			t.Fields = append(t.Fields, field)
 		}
-		if td != nil {
-			td.Type = t
-			tr.types = append(tr.types, *td)
-		}
 
+		td.Type = t
+		tr.types = append(tr.types, *td)
 		return &pkg.IdentType{Name: td.Name}
 	case *v2.StringSchema:
 		ret = tr.strFmt.typeFor(s.Format)
@@ -110,6 +145,30 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 		fields := make([]pkg.Field, len(s.AllOf))
 
 		for i := range s.AllOf {
+			if dr, ok := s.AllOf[i].(*v2.ReferenceSchema); ok {
+				parts := strings.Split(dr.Reference, "/")
+				refName := formatID(parts[len(parts)-1])
+
+				if dt, ok := tr.discriminators[refName]; ok {
+					fields[i] = pkg.Field{
+						Type: &pkg.IdentType{
+							Name: refName + "Meta",
+						},
+					}
+
+					td.Comment = strings.Replace(td.Comment, td.Name, td.Name+refName, 1)
+					td.Name += refName
+
+					disc := dt.Type.(*pkg.InterfaceType)
+					disc.Implementors = append(disc.Implementors, pkg.InterfaceImplementor{
+						Discriminator: td.Orig,
+						Type:          &pkg.IdentType{Name: td.Name},
+					})
+
+					continue
+				}
+			}
+
 			sn := fmt.Sprintf("%sAllOf%d", td.Name, i)
 			field := pkg.Field{
 				Type: tr.convertSchema(s.AllOf[i], &pkg.TypeDecl{
@@ -125,11 +184,8 @@ func (tr *typeRegistry) convertSchema(schema v2.Schema, td *pkg.TypeDecl, declAl
 			Fields: fields,
 		}
 
-		if td != nil {
-			td.Type = t
-			tr.types = append(tr.types, *td)
-		}
-
+		td.Type = t
+		tr.types = append(tr.types, *td)
 		return &pkg.IdentType{Name: td.Name}
 	default:
 		// XXX handle this
@@ -222,4 +278,16 @@ func (sf stringFormat) typeFor(fmt *string) pkg.Type {
 	}
 
 	return &pkg.IdentType{Name: "string"}
+}
+
+func commentForPropSchema(prop v2.Schema) string {
+	comment := ""
+	if prop.GetTitle() != nil {
+		comment += *prop.GetTitle()
+	}
+	if prop.GetDescription() != nil {
+		comment += *prop.GetDescription()
+	}
+
+	return comment
 }

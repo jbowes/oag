@@ -129,6 +129,71 @@ func TestConvertSchema(t *testing.T) {
 				},
 			},
 		},
+		{
+			"object discriminator",
+			&v2.ObjectSchema{
+				Discriminator: ptr("type_field"),
+				Properties: &v2.SchemaMap{
+					{Name: "type_field", Schema: &v2.StringSchema{}},
+				},
+				Required: &[]string{"type_field"},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{
+				{
+					Name: "Foo",
+					Type: &pkg.InterfaceType{
+						Methods: []pkg.InterfaceMethod{
+							{Name: "GetTypeField", Return: &pkg.IdentType{Name: "string"}},
+						},
+					},
+				},
+				{
+					Name:    "FooMeta",
+					Comment: "FooMeta is an abstract data type for API communication.",
+					Type: &pkg.StructType{
+						Fields: []pkg.Field{
+							{ID: "TypeField", Type: &pkg.IdentType{Name: "string"}, Orig: "type_field"},
+						},
+					},
+				},
+			},
+		},
+		{
+			"object discriminator optional field",
+			&v2.ObjectSchema{
+				Discriminator: ptr("type_field"),
+				Properties: &v2.SchemaMap{
+					{Name: "field", Schema: &v2.StringSchema{}},
+					{Name: "type_field", Schema: &v2.StringSchema{}},
+				},
+				Required: &[]string{"type_field"},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{
+				{
+					Name: "Foo",
+					Type: &pkg.InterfaceType{
+						Methods: []pkg.InterfaceMethod{
+							{Name: "GetField", Return: &pkg.PointerType{Type: &pkg.IdentType{Name: "string"}}, Comment: "Optional"},
+							{Name: "GetTypeField", Return: &pkg.IdentType{Name: "string"}},
+						},
+					},
+				},
+				{
+					Name:    "FooMeta",
+					Comment: "FooMeta is an abstract data type for API communication.",
+					Type: &pkg.StructType{
+						Fields: []pkg.Field{
+							{ID: "Field", Type: &pkg.PointerType{Type: &pkg.IdentType{Name: "string"}}, Orig: "field", Comment: "Optional"},
+							{ID: "TypeField", Type: &pkg.IdentType{Name: "string"}, Orig: "type_field"},
+						},
+					},
+				},
+			},
+		},
 	}
 
 	for _, tc := range tcs {
@@ -217,3 +282,5 @@ func TestStringFormatTypeFor(t *testing.T) {
 		})
 	}
 }
+
+func ptr(in string) *string { return &in }
