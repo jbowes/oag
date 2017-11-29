@@ -54,7 +54,10 @@ func generateClient() error {
 
 	code = mutator.Mutate(code)
 
-	o, _ := ioutil.ReadFile(cfg.Output)
+	o, err := ioutil.ReadFile(cfg.Output)
+	if err != nil {
+		return err
+	}
 
 	var buf bytes.Buffer
 	if err = writer.Write(&buf, code, &cfg.Boilerplate); err != nil {

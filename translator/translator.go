@@ -210,22 +210,22 @@ func convertOperation(tr *typeRegistry, def *v2.Document, n *visited, httpMethod
 		method.Params = append(method.Params, pkg.Param{
 			ID:   "opts",
 			Arg:  "opts",
-			Type: &pkg.PointerType{Type: &pkg.IdentType{Name: optsName}},
+			Type: tr.indirect(&pkg.IdentType{Name: optsName}),
 			Kind: pkg.Opts,
 		})
 	}
 
-	method.Return, method.Errors = convertOperationResponses(def, tr, methodName, o, p)
+	method.Return, method.Errors = convertOperationResponses(def, tr, methodName, o.Responses, p)
 
 	return method
 }
 
-func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName string, o *v2.Operation, p *pkg.Package) ([]pkg.Type, map[int]pkg.Type) {
+func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName string, resp *v2.Responses, p *pkg.Package) ([]pkg.Type, map[int]pkg.Type) {
 	var rets []pkg.Type
 	errs := make(map[int]pkg.Type)
 
 	iter := false
-	for code, r := range o.Responses.Codes {
+	for code, r := range resp.Codes {
 		switch {
 		case code < 200: // XXX should these be handled?
 		case code == 204: // no response
@@ -243,11 +243,11 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 
 				p.Iters = append(p.Iters, pkg.Iter{
 					Name:   name,
-					Return: &pkg.PointerType{Type: it.Type},
+					Return: tr.indirect(it.Type),
 				})
 
 			} else {
-				ret = &pkg.PointerType{Type: ret}
+				ret = tr.indirect(ret)
 			}
 
 			rets = append(rets, ret)
@@ -262,22 +262,18 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 				parts := strings.Split(t.Reference, "/")
 				refname := parts[len(parts)-1] // XXX rename for snake case
 
-				errs[code] = &pkg.PointerType{
-					Type: &pkg.IdentType{Name: refname},
-				}
+				errs[code] = tr.indirect(&pkg.IdentType{Name: refname})
 			}
 		}
 	}
 
 	// XXX handle when this is the success case (no 2XX responses)
-	if o.Responses.Default != nil {
-		if t, ok := o.Responses.Default.Schema.(*v2.ReferenceSchema); ok {
+	if resp.Default != nil {
+		if t, ok := resp.Default.Schema.(*v2.ReferenceSchema); ok {
 			parts := strings.Split(t.Reference, "/")
 			refname := parts[len(parts)-1] // XXX rename for snake case
 
-			errs[-1] = &pkg.PointerType{
-				Type: &pkg.IdentType{Name: refname},
-			}
+			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
 		}
 
 	}
@@ -314,7 +310,7 @@ func convertParameter(tr *typeRegistry, def *v2.Document, methodName string, pat
 				body.Arg = formatReserved(body.ID, client.ContextName)
 			}
 		}
-		body.Type = &pkg.PointerType{Type: body.Type}
+		body.Type = tr.indirect(body.Type)
 
 		return body, nil, nil
 	case "path":
