@@ -198,6 +198,12 @@ func (tr *typeRegistry) convertItems(i v2.Items) pkg.Type {
 	}
 }
 
+// indirect wraps a type in a pointer for use in parameters / return values,
+// if required.
+func (tr *typeRegistry) indirect(t pkg.Type) pkg.Type {
+	return &pkg.PointerType{Type: t}
+}
+
 type stringFormat map[string]string
 
 func (sf stringFormat) typeFor(fmt *string) pkg.Type {
