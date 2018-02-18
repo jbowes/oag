@@ -22,7 +22,7 @@ func usage() {
 }
 
 func initConfig() error {
-	f, err := os.OpenFile(*cfgFile, os.O_CREATE|os.O_EXCL|os.O_RDWR, 0666)
+	f, err := os.OpenFile(*cfgFile, os.O_CREATE|os.O_EXCL|os.O_RDWR, 0600)
 	if err != nil {
 		return err
 	}
