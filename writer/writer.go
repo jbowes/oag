@@ -324,7 +324,7 @@ func setOptQueryArgs(g *jen.Group, errRet []jen.Code, qDefined bool, args []pkg.
 				})
 			case pkg.Multi:
 				st := typ.(*pkg.SliceType)
-				g.For(jen.List(jen.Id("_"), jen.Id("v")).Op(":=").Range().Id("opts").Dot(q.ID)).BlockFunc(func(g *jen.Group) {
+				g.For(jen.List(jen.Id("_"), jen.Id("v")).Op(":=").Range().Id("*opts").Dot(q.ID)).BlockFunc(func(g *jen.Group) {
 					if t, ok := st.Type.(*pkg.IdentType); ok && t.Marshal {
 						g.List(jen.Id("b"), jen.Err()).Op(":=").Id("v").Dot("MarshalText").Call()
 						g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
