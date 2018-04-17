@@ -201,7 +201,7 @@ func TestSetOptQueryArgs(t *testing.T) {
 				var q url.Values
 				if opts != nil {
 					q = make(url.Values)
-					for _, v := range opts.arg {
+					for _, v := range *opts.arg {
 						q.Add("arg", v)
 					}
 				}
@@ -215,7 +215,7 @@ func TestSetOptQueryArgs(t *testing.T) {
 				var q url.Values
 				if opts != nil {
 					q = make(url.Values)
-					for _, v := range opts.arg {
+					for _, v := range *opts.arg {
 						b, err := v.MarshalText()
 						if err != nil {
 							return
