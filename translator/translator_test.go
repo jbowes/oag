@@ -64,6 +64,34 @@ func TestConvertOperationResponses(t *testing.T) {
 				400: &pkg.PointerType{Type: &pkg.IdentType{Name: "BadRequest"}},
 			},
 		},
+		{
+			name: "Default response",
+			resp: v2.Responses{
+				Default: &v2.Response{
+					Schema: &v2.ReferenceSchema{Reference: "Error"},
+				},
+			},
+			ret: []pkg.Type{
+				&pkg.IdentType{Name: "error"},
+			},
+			errs: map[int]pkg.Type{
+				-1: &pkg.PointerType{Type: &pkg.IdentType{Name: "Error"}},
+			},
+		},
+		{
+			name: "Default response",
+			resp: v2.Responses{
+				Default: &v2.Response{
+					Reference: "Error",
+				},
+			},
+			ret: []pkg.Type{
+				&pkg.IdentType{Name: "error"},
+			},
+			errs: map[int]pkg.Type{
+				-1: &pkg.PointerType{Type: &pkg.IdentType{Name: "Error"}},
+			},
+		},
 	}
 
 	for _, tc := range tcs {
