@@ -269,9 +269,15 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 
 	// XXX handle when this is the success case (no 2XX responses)
 	if resp.Default != nil {
+
 		if t, ok := resp.Default.Schema.(*v2.ReferenceSchema); ok {
 			parts := strings.Split(t.Reference, "/")
 			refname := parts[len(parts)-1] // XXX rename for snake case
+
+			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
+		} else if resp.Default.Reference != "" {
+			parts := strings.Split(resp.Default.Reference, "/")
+			refname := parts[len(parts)-1]
 
 			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
 		}
