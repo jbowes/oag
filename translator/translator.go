@@ -252,36 +252,13 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 
 			rets = append(rets, ret)
 		default:
-			if r.Reference != "" {
-				parts := strings.Split(r.Reference, "/")
-				refname := parts[len(parts)-1]
-				r = (*doc.Responses)[refname]
-			}
-
-			if t, ok := r.Schema.(*v2.ReferenceSchema); ok {
-				parts := strings.Split(t.Reference, "/")
-				refname := parts[len(parts)-1] // XXX rename for snake case
-
-				errs[code] = tr.indirect(&pkg.IdentType{Name: refname})
-			}
+			errs[code] = resolveErrRefs(r, doc, tr)
 		}
 	}
 
 	// XXX handle when this is the success case (no 2XX responses)
 	if resp.Default != nil {
-
-		if t, ok := resp.Default.Schema.(*v2.ReferenceSchema); ok {
-			parts := strings.Split(t.Reference, "/")
-			refname := parts[len(parts)-1] // XXX rename for snake case
-
-			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
-		} else if resp.Default.Reference != "" {
-			parts := strings.Split(resp.Default.Reference, "/")
-			refname := parts[len(parts)-1]
-
-			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
-		}
-
+		errs[-1] = resolveErrRefs(*resp.Default, doc, tr)
 	}
 
 	if !iter {
@@ -403,4 +380,24 @@ func methodMap(methods map[string]*v2.Operation) map[string]string {
 	}
 
 	return out
+}
+
+// resolveErrRefs resolves a given response with a refname according to doc and type registry
+// into an error type
+func resolveErrRefs(r v2.Response, doc *v2.Document, tr *typeRegistry) pkg.Type {
+	if r.Reference != "" {
+		parts := strings.Split(r.Reference, "/")
+		refname := parts[len(parts)-1]
+		r = (*doc.Responses)[refname]
+	}
+
+	t, ok := r.Schema.(*v2.ReferenceSchema)
+	if !ok {
+		return nil
+	}
+
+	parts := strings.Split(t.Reference, "/")
+	refname := parts[len(parts)-1] // XXX rename for snake case
+
+	return tr.indirect(&pkg.IdentType{Name: refname})
 }
