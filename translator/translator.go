@@ -252,11 +252,7 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 
 			rets = append(rets, ret)
 		default:
-			if r.Reference != "" {
-				parts := strings.Split(r.Reference, "/")
-				refname := parts[len(parts)-1]
-				r = (*doc.Responses)[refname]
-			}
+			r = resolveReferenceName(r, doc)
 
 			if t, ok := r.Schema.(*v2.ReferenceSchema); ok {
 				parts := strings.Split(t.Reference, "/")
@@ -269,19 +265,14 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 
 	// XXX handle when this is the success case (no 2XX responses)
 	if resp.Default != nil {
+		*resp.Default = resolveReferenceName(*resp.Default, doc)
 
 		if t, ok := resp.Default.Schema.(*v2.ReferenceSchema); ok {
 			parts := strings.Split(t.Reference, "/")
 			refname := parts[len(parts)-1] // XXX rename for snake case
 
 			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
-		} else if resp.Default.Reference != "" {
-			parts := strings.Split(resp.Default.Reference, "/")
-			refname := parts[len(parts)-1]
-
-			errs[-1] = tr.indirect(&pkg.IdentType{Name: refname})
 		}
-
 	}
 
 	if !iter {
@@ -403,4 +394,15 @@ func methodMap(methods map[string]*v2.Operation) map[string]string {
 	}
 
 	return out
+}
+
+// resolveReferenceName will return a filled out response if only a reference is given
+func resolveReferenceName(r v2.Response, doc *v2.Document) v2.Response {
+	if r.Reference != "" {
+		parts := strings.Split(r.Reference, "/")
+		refname := parts[len(parts)-1]
+		r = (*doc.Responses)[refname]
+	}
+
+	return r
 }
