@@ -324,14 +324,16 @@ func setOptQueryArgs(g *jen.Group, errRet []jen.Code, qDefined bool, args []pkg.
 				})
 			case pkg.Multi:
 				st := typ.(*pkg.SliceType)
-				g.For(jen.List(jen.Id("_"), jen.Id("v")).Op(":=").Range().Id("*opts").Dot(q.ID)).BlockFunc(func(g *jen.Group) {
-					if t, ok := st.Type.(*pkg.IdentType); ok && t.Marshal {
-						g.List(jen.Id("b"), jen.Err()).Op(":=").Id("v").Dot("MarshalText").Call()
-						g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
-						g.Id("q").Dot("Add").Call(jen.Lit(orig), jen.String().Params(jen.Id("b")))
-					} else {
-						g.Id("q").Dot("Add").Call(jen.Lit(orig), stringFor(st.Type, jen.Id("v")))
-					}
+				g.If(jen.Id("opts").Dot(q.ID).Op("!=").Nil()).BlockFunc(func(g *jen.Group) {
+					g.For(jen.List(jen.Id("_"), jen.Id("v")).Op(":=").Range().Id("*opts").Dot(q.ID)).BlockFunc(func(g *jen.Group) {
+						if t, ok := st.Type.(*pkg.IdentType); ok && t.Marshal {
+							g.List(jen.Id("b"), jen.Err()).Op(":=").Id("v").Dot("MarshalText").Call()
+							g.If(jen.Err().Op("!=").Nil()).Block(jen.Return(errRet...))
+							g.Id("q").Dot("Add").Call(jen.Lit(orig), jen.String().Params(jen.Id("b")))
+						} else {
+							g.Id("q").Dot("Add").Call(jen.Lit(orig), stringFor(st.Type, jen.Id("v")))
+						}
+					})
 				})
 			default:
 				panic("unhandled collection format")
