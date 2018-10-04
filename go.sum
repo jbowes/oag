@@ -1,0 +1,8 @@
+github.com/dave/jennifer v0.14.0 h1:etDvjF0GOEQRiKg1XX/7yDDghdU4uDDEJBDTerfz0oA=
+github.com/dave/jennifer v0.14.0/go.mod h1:fIb+770HOpJ2fmN9EPPKOqm1vMGhB+TwXKMZhrIygKg=
+github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813 h1:Uc+IZ7gYqAf/rSGFplbWBSHaGolEQlNLgMgSE3ccnIQ=
+github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813/go.mod h1:P+oSoE9yhSRvsmYyZsshflcR6ePWYLql6UU1amW13IM=
+github.com/go-yaml/yaml v0.0.0-20170812160011-eb3733d160e7 h1:eZqMvILvSB6AhTa+FGXHupLRXfU8SFxBP4IW1wetpT4=
+github.com/go-yaml/yaml v0.0.0-20170812160011-eb3733d160e7/go.mod h1:w2MrLa16VYP0jy6N7M5kHaCkaLENm+P+Tv+MfurjSw0=
+github.com/renstrom/dedent v1.0.0 h1:MKUQ4Nr+V8f9ax+9wYAx5GhspvFzs47vK0oXePaVoWk=
+github.com/renstrom/dedent v1.0.0/go.mod h1:M3t8jnE/HlAaLf3m0P158lCmrc8ZErlRB4/cN6V5TXY=
