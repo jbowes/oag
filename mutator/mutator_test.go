@@ -461,7 +461,7 @@ func TestHoistEmbeddedStructFields(t *testing.T) {
 			}}}),
 		},
 
-		{"hosited if used from many calls",
+		{"hoisted if used from many calls",
 			basePkg(
 				pkg.Client{Methods: []pkg.Method{{
 					Return: []pkg.Type{&pkg.IdentType{Name: "StructThing"}},
