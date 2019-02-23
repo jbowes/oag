@@ -228,7 +228,7 @@ func convertOperationResponses(doc *v2.Document, tr *typeRegistry, methodName st
 	for code, r := range resp.Codes {
 		switch {
 		case code < 200: // XXX should these be handled?
-		case code == 204: // no response
+		case code == 204, r.Schema == nil: // no response
 		case code < 300: // XXX handle multiple 2XX returns
 			ret := tr.convertSchema(r.Schema, &pkg.TypeDecl{
 				Name: methodName + "Response",
