@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-yaml/yaml"
-	"github.com/renstrom/dedent"
+	"github.com/lithammer/dedent"
 )
 
 func TestParametersUnmarshalYAML(t *testing.T) {
