@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where reserved keywords were being used as function/method
   arguments.
 - Fix support for reference parameters.
+- Build on the latest version of Go (1.14.x)
 
 ## [0.0.1] - 2017-10-15
 

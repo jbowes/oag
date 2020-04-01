@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/renstrom/dedent"
+	"github.com/lithammer/dedent"
 )
 
 // Jen uses multiline /* */ comments. // looks nicer. Preformat with this func.

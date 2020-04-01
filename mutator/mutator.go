@@ -246,8 +246,8 @@ const (
 	structField
 	embeddedStruct
 
-	none typeContext = 0
-	any  typeContext = 0xFFFF
+	// none typeContext = 0
+	any typeContext = 0xFFFF
 )
 
 type stackItem struct {
