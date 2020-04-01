@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.0.2] - 2020-04-01
+
 ### Added
 - Support non-string types in query and header parameters.
 - Support additionalProperties when no properties are defined, creating maps.
