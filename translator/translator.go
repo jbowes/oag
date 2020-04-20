@@ -18,10 +18,21 @@ func Translate(doc *v2.Document, qual, name string, types map[string]string, str
 		BaseURL:   "https://" + *doc.Host + *doc.BasePath,
 	}
 
+	// convert defined types. do two passes: one to convert the discriminators,
+	// and another for the remaining types. This ensures the discriminators are
+	// defined for any types that may use them.
 	tr := &typeRegistry{strFmt: stringFormats}
 	if doc.Definitions != nil {
 		for _, def := range *doc.Definitions {
-			convertDefinition(tr, def.Name, def.Schema, types)
+			if os, ok := def.Schema.(*v2.ObjectSchema); ok && os.Discriminator != nil {
+				convertDefinition(tr, def.Name, def.Schema, types)
+			}
+		}
+
+		for _, def := range *doc.Definitions {
+			if os, ok := def.Schema.(*v2.ObjectSchema); !ok || os.Discriminator == nil {
+				convertDefinition(tr, def.Name, def.Schema, types)
+			}
 		}
 	}
 
@@ -100,6 +111,7 @@ func convertDefinition(tr *typeRegistry, name string, def v2.Schema, types map[s
 
 	tr.convertSchema(def, &pkg.TypeDecl{
 		Name:    dataName,
+		Orig:    name,
 		Comment: comment,
 	}, true)
 }

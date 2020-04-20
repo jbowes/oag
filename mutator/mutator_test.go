@@ -155,6 +155,36 @@ func TestInlinePrimitiveTypes(t *testing.T) {
 				}}}},
 			},
 		},
+
+		{"struct not inlined",
+			pkg.Package{
+				TypeDecls: []pkg.TypeDecl{{Name: "ID", Type: &pkg.StructType{}}},
+				Clients: []pkg.Client{{Methods: []pkg.Method{{
+					Errors: map[int]pkg.Type{-1: &pkg.IdentType{Name: "ID"}},
+				}}}},
+			},
+			pkg.Package{
+				TypeDecls: []pkg.TypeDecl{{Name: "ID", Type: &pkg.StructType{}}},
+				Clients: []pkg.Client{{Methods: []pkg.Method{{
+					Errors: map[int]pkg.Type{-1: &pkg.IdentType{Name: "ID"}},
+				}}}},
+			},
+		},
+
+		{"interface not inlined",
+			pkg.Package{
+				TypeDecls: []pkg.TypeDecl{{Name: "ID", Type: &pkg.InterfaceType{}}},
+				Clients: []pkg.Client{{Methods: []pkg.Method{{
+					Errors: map[int]pkg.Type{-1: &pkg.IdentType{Name: "ID"}},
+				}}}},
+			},
+			pkg.Package{
+				TypeDecls: []pkg.TypeDecl{{Name: "ID", Type: &pkg.InterfaceType{}}},
+				Clients: []pkg.Client{{Methods: []pkg.Method{{
+					Errors: map[int]pkg.Type{-1: &pkg.IdentType{Name: "ID"}},
+				}}}},
+			},
+		},
 	}
 
 	for _, tc := range tcs {
@@ -223,6 +253,23 @@ func TestInlineResponseStruct(t *testing.T) {
 				}},
 				{Name: "OtherStructThing", Type: &pkg.StructType{
 					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "FieldThing"}}},
+				}},
+			},
+			Clients: c,
+		}
+	}
+
+	interfacePkg := func(c ...pkg.Client) pkg.Package {
+		return pkg.Package{
+			TypeDecls: []pkg.TypeDecl{
+				{Name: "FieldThing", Type: &pkg.StructType{
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "string"}}},
+				}},
+				{Name: "StructThing", Type: &pkg.StructType{
+					Fields: []pkg.Field{{ID: "Field", Type: &pkg.IdentType{Name: "FieldThing"}}},
+				}},
+				{Name: "InterfaceThing", Type: &pkg.InterfaceType{
+					Methods: []pkg.InterfaceMethod{{Name: "GetField", Return: &pkg.IdentType{Name: "FieldThing"}}},
 				}},
 			},
 			Clients: c,
@@ -328,6 +375,17 @@ func TestInlineResponseStruct(t *testing.T) {
 			inlineDoublePkg(pkg.Client{Methods: []pkg.Method{{
 				Return: []pkg.Type{&pkg.IdentType{Name: "StructThing"}},
 			}}}),
+		},
+
+		{"not inlined if used in one struct and interface",
+			interfacePkg(pkg.Client{Methods: []pkg.Method{{Return: []pkg.Type{
+				&pkg.IdentType{Name: "StructThing"},
+				&pkg.IdentType{Name: "InterfaceThing"},
+			}}}}),
+			interfacePkg(pkg.Client{Methods: []pkg.Method{{Return: []pkg.Type{
+				&pkg.IdentType{Name: "StructThing"},
+				&pkg.IdentType{Name: "InterfaceThing"},
+			}}}}),
 		},
 	}
 

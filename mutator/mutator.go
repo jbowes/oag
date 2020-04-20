@@ -46,13 +46,15 @@ func combineErrorsWithDefault(p *pkg.Package) *pkg.Package {
 	return p
 }
 
-// inlinePrimitiveTypes takes any non-struct type declarations and inlines their
-// use as the original type in function parameters, return types, and structs.
+// inlinePrimitiveTypes takes any non-struct, non-interface type declarations
+// and inlines their use as the original type in function parameters, return
+// types, and structs.
 //
 // Removal of the type declaration is handled in subsequent mutations.
 func inlinePrimitiveTypes(p *pkg.Package) *pkg.Package {
 	for _, d := range p.TypeDecls {
-		if _, ok := d.Type.(*pkg.StructType); ok {
+		switch d.Type.(type) {
+		case *pkg.StructType, *pkg.InterfaceType:
 			continue
 		}
 
@@ -354,6 +356,14 @@ func recurseType(typ pkg.Type, parentCtx typeContext, fn func(pkg.Type, typeCont
 		t.Type = recurseType(t.Type, parentCtx|iter, fn)
 	case *pkg.PointerType:
 		t.Type = recurseType(t.Type, parentCtx, fn)
+	case *pkg.InterfaceType:
+		for i := range t.Methods {
+			t.Methods[i].Return = recurseType(t.Methods[i].Return, parentCtx, fn)
+		}
+
+		for i := range t.Implementors {
+			t.Implementors[i].Type = recurseType(t.Implementors[i].Type, parentCtx, fn)
+		}
 	}
 
 	return fn(typ, parentCtx)
