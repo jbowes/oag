@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	4d63.com/gochecknoglobals v0.0.0-20210416044342-fb0abda3d9aa // indirect
-	github.com/dave/jennifer v1.4.1
+	github.com/dave/jennifer v1.6.0
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/go-critic/go-critic v0.5.7 // indirect
 	github.com/go-yaml/yaml v2.1.0+incompatible
@@ -23,9 +23,6 @@ require (
 	github.com/spf13/cast v1.4.1 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/timakin/bodyclose v0.0.0-20210704033933-f49887972144 // indirect
-	golang.org/x/mod v0.5.0 // indirect
-	golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e // indirect
-	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 	mvdan.cc/unparam v0.0.0-20210701114405-894c3c7ee6a6 // indirect
 )
