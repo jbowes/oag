@@ -86,7 +86,7 @@ func TestConvertSchema(t *testing.T) {
 			&pkg.IdentType{Name: "Foo"},
 			[]pkg.TypeDecl{{Name: "Foo", Type: &pkg.MapType{
 				Key:   &pkg.IdentType{Name: "string"},
-				Value: &pkg.InterfaceType{},
+				Value: &pkg.EmptyInterfaceType{},
 			}}},
 		},
 		{
@@ -126,6 +126,71 @@ func TestConvertSchema(t *testing.T) {
 						{Type: &pkg.IdentType{Name: "RefField"}},
 						{Type: &pkg.IdentType{Name: "FooAllOf1"}},
 					}},
+				},
+			},
+		},
+		{
+			"object discriminator",
+			&v2.ObjectSchema{
+				Discriminator: ptr("type_field"),
+				Properties: &v2.SchemaMap{
+					{Name: "type_field", Schema: &v2.StringSchema{}},
+				},
+				Required: &[]string{"type_field"},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{
+				{
+					Name: "Foo",
+					Type: &pkg.InterfaceType{
+						Methods: []pkg.InterfaceMethod{
+							{Name: "GetTypeField", Return: &pkg.IdentType{Name: "string"}},
+						},
+					},
+				},
+				{
+					Name:    "FooMeta",
+					Comment: "FooMeta is an abstract data type for API communication.",
+					Type: &pkg.StructType{
+						Fields: []pkg.Field{
+							{ID: "TypeField", Type: &pkg.IdentType{Name: "string"}, Orig: "type_field"},
+						},
+					},
+				},
+			},
+		},
+		{
+			"object discriminator optional field",
+			&v2.ObjectSchema{
+				Discriminator: ptr("type_field"),
+				Properties: &v2.SchemaMap{
+					{Name: "field", Schema: &v2.StringSchema{}},
+					{Name: "type_field", Schema: &v2.StringSchema{}},
+				},
+				Required: &[]string{"type_field"},
+			},
+			&pkg.TypeDecl{Name: "Foo"},
+			&pkg.IdentType{Name: "Foo"},
+			[]pkg.TypeDecl{
+				{
+					Name: "Foo",
+					Type: &pkg.InterfaceType{
+						Methods: []pkg.InterfaceMethod{
+							{Name: "GetField", Return: &pkg.PointerType{Type: &pkg.IdentType{Name: "string"}}, Comment: "Optional"},
+							{Name: "GetTypeField", Return: &pkg.IdentType{Name: "string"}},
+						},
+					},
+				},
+				{
+					Name:    "FooMeta",
+					Comment: "FooMeta is an abstract data type for API communication.",
+					Type: &pkg.StructType{
+						Fields: []pkg.Field{
+							{ID: "Field", Type: &pkg.PointerType{Type: &pkg.IdentType{Name: "string"}}, Orig: "field", Comment: "Optional"},
+							{ID: "TypeField", Type: &pkg.IdentType{Name: "string"}, Orig: "type_field"},
+						},
+					},
 				},
 			},
 		},
@@ -217,3 +282,5 @@ func TestStringFormatTypeFor(t *testing.T) {
 		})
 	}
 }
+
+func ptr(in string) *string { return &in }

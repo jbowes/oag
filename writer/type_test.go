@@ -21,7 +21,17 @@ func TestWriteType(t *testing.T) {
 		{"slice", &pkg.SliceType{Type: &pkg.IdentType{Name: "string"}}, "[]string"},
 		{"pointer", &pkg.PointerType{Type: &pkg.IdentType{Name: "string"}}, "*string"},
 		{"empty struct", &pkg.StructType{}, "struct{}"},
-		{"empty interface", &pkg.InterfaceType{}, "interface{}"},
+		{"empty interface", &pkg.EmptyInterfaceType{}, "interface{}"},
+
+		{"interface (no methods)", &pkg.InterfaceType{}, "interface{}"},
+		{"interface", &pkg.InterfaceType{Methods: []pkg.InterfaceMethod{
+			{Name: "GetFoo", Return: &pkg.IdentType{Name: "string"}},
+			{Name: "GetBar", Return: &pkg.IdentType{Name: "string"}, Comment: "bar is neat"},
+		}}, `interface{
+			GetFoo() string
+			GetBar() string // bar is neat
+		}`},
+
 		{"struct",
 			&pkg.StructType{Fields: []pkg.Field{
 				{ID: "Foo", Type: &pkg.IdentType{Name: "string"}},
@@ -51,6 +61,7 @@ func TestWriteType(t *testing.T) {
 				Bar struct{}
 			}`,
 		},
+
 		{"map",
 			&pkg.MapType{
 				Key:   &pkg.IdentType{Name: "string"},
